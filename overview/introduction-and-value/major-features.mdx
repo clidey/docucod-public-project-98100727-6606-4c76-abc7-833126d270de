@@ -1,0 +1,111 @@
+---
+title: "Major Features at a Glance"
+description: "Quickly review key features: support for multiple major Go ORMs, multi-threaded benchmarking, easy environment set-up with Docker Compose, and detailed reporting. Learn how these features help you measure, compare, and analyze ORM performance efficiently."
+---
+
+# Major Features at a Glance
+
+## Unlocking Efficient ORM Performance Benchmarking
+
+ORM Benchmark provides a streamlined, powerful platform to measure and compare the performance of multiple leading Go Object-Relational Mapping (ORM) libraries. This page highlights the core features that empower you to quickly set up, run, and analyze benchmarks, helping you make informed decisions about ORM choices with confidence and ease.
+
+### Why These Features Matter
+
+When evaluating ORMs, you need reliable, repeatable, and insightful performance data. ORM Benchmark’s design specifically targets common challenges in benchmarking by providing multi-threading support, comprehensive ORM coverage, and user-friendly environment setup — all while delivering detailed benchmark reports.
+
+---
+
+## Key Features & Their Benefits
+
+### 1. Broad ORM Support
+
+- **Multiple Major Go ORMs Covered:** Benchmark popular ORMs including `Gorm` (both v1 and v2), raw SQL execution, `Xorm`, and `Beego ORM`. This extensive coverage means you can compare across a wide ecosystem without configuration overhead.
+- **Standardized Benchmark Suite:** Each ORM is tested through a set of common operations — Insert, MultiInsert, Update, Read, and MultiRead — ensuring apples-to-apples comparisons.
+
+### 2. Multi-threaded Benchmarking
+
+- **High Concurrency Testing with Multi Parameter:** The benchmarking tool supports executing queries multiplied by a configurable concurrency factor (`-multi`). This lets you simulate multi-threaded environments, reflecting real-world usage and uncovering performance bottlenecks under load.
+- **Accurate Measurement Under Stress:** Running operations multiple times across threads surfaces true performance characteristics far beyond what single-threaded testing can reveal.
+
+### 3. Easy Environment Setup with Docker Compose
+
+- **Containerized PostgreSQL Database:** The project includes Docker Compose scripts to spin up a ready-to-use PostgreSQL instance. You avoid manual database setup and get a consistent testing environment in seconds.
+- **Preconfigured Defaults for Smooth Start:** Default PostgreSQL connection strings and parameters reduce friction in initial setup and ensure consistent benchmarking conditions.
+
+### 4. Detailed Benchmark Reporting
+
+- **Comprehensive Metrics:** Reports include nanoseconds per operation, memory bytes allocated per operation, and number of allocations, providing insight into both speed and resource efficiency.
+- **Clear Fail Messaging:** If benchmarks fail during execution, results clearly indicate the cause, helping you quickly identify and fix issues.
+- **Sorted and Comparative Results:** Benchmarks are sorted by duration and grouped by operation types, making it easy to compare ORM performance side-by-side.
+
+---
+
+## Practical Scenario: Compare ORMs in Minutes
+
+Imagine you are deciding which ORM to adopt for a new project. Using ORM Benchmark, you:
+
+- Spin up a PostgreSQL container using the included Docker Compose.
+- Run the benchmarks for all supported ORMs with a simple command (`go run main.go -multi=20 -orm=all`).
+- Review the detailed output that ranks insert, read, update, and batch operations across ORMs.
+
+This workflow gives you fast, reliable data to support your ORM choice, reducing guesswork and costly trial-and-error.
+
+---
+
+## Additional Tips & Best Practices
+
+- **Adjust `-multi` Parameter to Simulate Your Load:** Tailor the concurrency multiplier to gradually increase load and observe scaling behavior.
+- **Check Logs For Failure Details:** Benchmark failures output errors to the console; use these messages to troubleshoot setup or query issues.
+- **Use Profiling Flags:** Enable CPU or memory profiling (`-cpu` or `-mem`) for deeper insights into ORM internals during benchmarking.
+
+---
+
+## Getting Started with Major Features
+
+This page complements the following key documentation, guiding you from understanding major features through setup and usage:
+
+- [What is ORM Benchmark?](./what-is-orm-benchmark)
+- [Core Value Proposition](./core-value-proposition)
+- [Integration & Setup Overview](./integration-and-setup)
+
+Begin your exploration with simple commands powered by robust benchmarking infrastructure.
+
+---
+
+For comprehensive usage instructions, head to the next logical step:
+
+[Running Your First Benchmark](../../getting-started/installation-and-first-run/running-your-first-benchmark)
+
+
+---
+
+## Learn More
+
+Explore the [ORMs & Technologies Supported](../../overview/architecture-and-core-concepts/supported-orms) to understand the breadth of ORM libraries benchmarked.
+
+
+---
+
+# Summary
+
+This documentation presents an overview of the major feature set of ORM Benchmark. It covers how the tool supports multiple prominent Go ORMs, offers concurrency testing, enables easy PostgreSQL setup via Docker Compose, and generates detailed, actionable benchmarking reports.
+
+**Sections Covered:**
+- Broad ORM Compatibility
+- Multi-threaded Benchmarking
+- Docker-based Environment Setup
+- Detailed Reporting and Metrics
+- Practical Usage Scenarios and Tips
+
+**Related Documentation:**
+- [What is ORM Benchmark?](./what-is-orm-benchmark)
+- [Core Value Proposition](./core-value-proposition)
+- [Running Your First Benchmark](../../getting-started/installation-and-first-run/running-your-first-benchmark)
+- [Supported ORMs & Technologies](../../overview/architecture-and-core-concepts/supported-orms)
+
+**Next Steps:**
+- Set up your environment using Docker Compose
+- Run your initial benchmarks with the multi-threaded mode
+- Analyze detailed reports to inform development choices
+
+Leverage these features to accelerate your ORM evaluation process with confidence and precision.
