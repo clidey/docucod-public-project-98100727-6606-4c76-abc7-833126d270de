@@ -1,0 +1,152 @@
+---
+title: "System Requirements"
+description: "Outlines the minimum OS, processor, memory, and supported Go versions required for reliable operation, as well as Docker requirements for environment orchestration. Helps users assess readiness and avoid incompatibility errors."
+---
+
+# System Requirements
+
+Ensuring your environment meets the minimum system requirements is critical to successfully running ORM Benchmark. This page outlines the necessary operating system, hardware specifications, Go versions, and Docker prerequisites to establish a stable and predictable benchmarking setup.
+
+---
+
+## 1. Operating System
+
+ORM Benchmark is designed to run on systems supporting Go and Docker. The following OS platforms are officially supported:
+
+- **Linux** (tested on Ubuntu 18.04 and later)
+- **macOS** (tested on Catalina and later)
+- **Windows** (tested on Windows 10 with WSL2 for Docker support)
+
+
+> **Tip:** Linux or macOS environments generally provide the most stable performance for database benchmarking workloads.
+
+
+## 2. Processor Requirements
+
+- Minimum: **Dual-core CPU**
+- Recommended: **Quad-core or higher**
+
+ORM Benchmark runs multiple concurrent database operations optimized by Go's runtime to use all available CPU cores. Having multiple cores ensures the benchmark can simulate realistic load and concurrency efficiently.
+
+
+## 3. Memory Requirements
+
+- Minimum: **4 GB RAM** 
+- Recommended: **8 GB RAM or more**
+
+The PostgreSQL server and concurrent benchmark runs demand sufficient memory. Low memory environments risk performance bottlenecks or out-of-memory failures during testing.
+
+
+## 4. Go Language Version
+
+ORM Benchmark requires a Go environment with one of the following supported versions:
+
+- **Go 1.18 or later**
+
+To verify your Go version, run:
+
+```bash
+go version
+```
+
+
+## 5. PostgreSQL and Docker Requirements
+
+ORM Benchmark uses Docker Compose to provision a PostgreSQL environment for consistent testing.
+
+- **Docker Engine**: Version 20.10 or later
+- **Docker Compose**: Version 1.27 or later
+
+
+### Docker Compose Setup
+
+ORM Benchmark provides a `docker-compose.yml` file that launches PostgreSQL with default credentials:
+
+```yaml
+version: '3'
+
+services:
+  postgres:
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=test
+```
+
+
+> **Note:** Ensure Docker is configured to expose the PostgreSQL port (5432) locally. Firewall or network policies should not block this port.
+
+> **Tip:** Running `docker-compose up` from the root of the repository will start the PostgreSQL container automatically.
+
+
+## 6. Network and Access Requirements
+
+- The benchmarking application must be able to connect to the PostgreSQL instance at `localhost:5432` (unless configured otherwise via command flags).
+- No network proxy or VPN should interfere with the database connection.
+
+
+## 7. Summary Table
+
+| Requirement                     | Minimum             | Recommended          |
+|---------------------------------|---------------------|---------------------|
+| Operating System                | Linux/macOS/Windows  | Linux/macOS         |
+| CPU                            | Dual-core           | Quad-core or better |
+| Memory                         | 4 GB                | 8 GB or more        |
+| Go Version                     | 1.18                | Latest stable       |
+| Docker Engine                  | 20.10               | Latest stable       |
+| Docker Compose                 | 1.27                | Latest stable       |
+
+
+## 8. Common Pitfalls and Troubleshooting
+
+<AccordionGroup title="Troubleshooting System Requirement Issues">
+<Accordion title="Low Memory Errors During Benchmarks">
+If your benchmark process exits unexpectedly or PostgreSQL runs out of memory, check the available RAM and try increasing it. On macOS and Windows, adjust Docker's resource allocation settings.
+</Accordion>
+<Accordion title="Go Version Mismatch">
+Running an unsupported Go version can cause build errors or runtime failures. Always check your version with `go version` and upgrade if below 1.18.
+</Accordion>
+<Accordion title="PostgreSQL Connection Refused">
+Ensure the Docker container is running and the port 5432 is accessible. Confirm firewall settings allow connections to localhost:5432.
+</Accordion>
+<Accordion title="Docker Not Installed or Not Running">
+Verify Docker installation with `docker --version`. On Linux, ensure the Docker daemon is running and your user has permission. On Windows/macOS, verify that Docker Desktop is started.
+</Accordion>
+</AccordionGroup>
+
+
+## 9. Next Steps
+
+Once your environment meets these requirements, proceed to:
+
+- [Installing Dependencies](/getting-started/setup-prerequisites/installing-dependencies) for detailed instructions on setting up Go modules, Docker, and PostgreSQL
+- [Cloning the Repository & Setting Up](/getting-started/installation-and-first-run/cloning-and-setup) to prepare the project code
+- [Running Your First Benchmark](/getting-started/installation-and-first-run/running-your-first-benchmark) to launch initial ORM tests
+
+
+---
+
+## References
+
+- Official Go Downloads: https://golang.org/dl/
+- Docker Installation Guide: https://docs.docker.com/get-docker/
+- PostgreSQL Docker Image: https://hub.docker.com/_/postgres
+
+---
+
+For detailed environment provisioning and integration insights, see the [Integration & Setup Overview](/overview/architecture-and-core-concepts/integration-and-setup).
+
+
+## See Also
+
+- [System Architecture](/overview/architecture-and-core-concepts/system-architecture)
+- [Supported ORMs](/overview/architecture-and-core-concepts/supported-orms)
+- [Running Your First Benchmark](/getting-started/installation-and-first-run/running-your-first-benchmark)
+
+<br><br>
+---
+
+*This documentation page ensures you validate your system environment to avoid common setup pitfalls and achieve reliable benchmarking results.*

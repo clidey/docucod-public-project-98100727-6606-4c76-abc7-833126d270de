@@ -1,0 +1,166 @@
+---
+title: "Quick Validation Checklist"
+description: "A concise checklist to confirm everything is in place: checking services, running smoke tests, and verifying benchmark output. Designed to help new users confirm they are ready to proceed."
+---
+
+# Quick Validation Checklist
+
+A quick and practical checklist to ensure all necessary components and services are in place before running ORM Benchmark. This guide helps you verify your environment readiness through service checks, smoke test executions, and benchmark output validation. It's designed for new users who want a fast confirmation that everything is correctly configured and working.
+
+---
+
+## 1. Confirm Services Are Accessible
+Before running benchmark tests, confirm that required services—especially PostgreSQL—are running and reachable.
+
+### Steps:
+
+- Verify PostgreSQL is running:
+  ```bash
+  docker-compose ps
+  ```
+  Look for the postgres container in the list with status `Up`.
+
+- Test PostgreSQL connection:
+  ```bash
+  psql postgres://postgres:postgres@localhost:5432/test?sslmode=disable -c '\l'
+  ```
+  This should list databases without errors.
+
+- If you don’t have `psql` installed, you can check connection by running:
+  ```bash
+  go run main.go -orm=raw_stmt
+  ```
+  This runs raw SQL benchmarks and will fail early if connection is not set up.
+
+<Tip>
+If PostgreSQL is not running, start it with:
+
+```bash
+docker-compose up -d
+```
+
+Refer to the [Cloning the Repository & Setting Up](https://documentation/getting-started/installation-and-first-run/cloning-and-setup) guide for detailed setup instructions.
+</Tip>
+
+## 2. Run Smoke Tests Using the Default Benchmark Command
+Smoke tests quickly validate that the benchmark suite runs without errors, confirming basic operability.
+
+### Steps:
+
+- Open a terminal in the project root directory.
+- Execute:
+  ```bash
+  go run main.go -multi=1 -orm=raw_stmt
+  ```
+  This runs the raw SQL benchmark once.
+
+- Observe output for successful test completion:
+  - You should see benchmark names printed with timing results.
+  - No error messages or panics should appear.
+
+<Note>
+The `raw_stmt` ORM suite uses direct SQL statements without ORM abstractions, making it a fast way to check connectivity and basic functionality.
+</Note>
+
+## 3. Verify Benchmark Output Format and Summary
+After running benchmarks, confirm that the output includes clear timing, allocation, and operation counts.
+
+### What to expect:
+
+- Each benchmark test prints with:
+  - Name of the benchmark (e.g., Insert, Update)
+  - Number of iterations (e.g., 200 times)
+  - Time taken in seconds
+  - Nanoseconds per operation
+  - Memory allocated per operation
+  - Number of allocations per operation
+
+- At the end, a summary report labeled "Reports:" consolidates all benchmark results across ORMs.
+
+### Example Snippet:
+```
+Insert
+                   Insert: 1200    5.00s  4,200 ns/op  720 B/op  15 allocs/op
+
+Reports: 
+  200 times - Insert
+    gorm:    5.00s  4,200 ns/op  720 B/op  15 allocs/op
+    bun:     4.90s  4,100 ns/op  700 B/op  14 allocs/op
+```
+
+<Tip>
+Consistent and readable output lets you quickly interpret success and performance metrics. If output is missing these elements or contains error messages, revisit setup or environment checks.
+</Tip>
+
+## 4. Common Issues to Watch For
+
+### Connection Failures
+- Errors connecting to PostgreSQL typically include connection refused or authentication failures.
+- Confirm your `-source` flag uses the correct DSN format and credentials.
+
+### Benchmark Failures
+- If benchmarks fail early with panics or error messages during insert/update/read operations, database schema may not be initialized.
+- Ensure the database table `models` is created. Running any benchmark triggers `initDB()` which creates the table.
+
+### Performance Profiling Files
+- If you used `-cpu` or `-mem` flags, verify that `cpu.pprof` and `mem.pprof` files are generated in the working directory.
+- Missing files may indicate profiling setup issues.
+
+## 5. Confirmation and Next Steps
+
+Once all checks pass:
+
+- You have verified services are running.
+- Smoke tests run cleanly with expected output.
+- Benchmark summaries appear formatted and complete.
+
+Proceed to run expanded benchmarks by specifying ORMs or concurrency:
+```bash
+# Run all ORMs with concurrency scaling
+ go run main.go -multi=20 -orm=all
+```
+
+Explore these guides next:
+
+- [Running Your First Benchmark](https://documentation/getting-started/installation-and-first-run/running-your-first-benchmark) — for detailed execution and output interpretation
+- [Configuration & Customization Options](https://documentation/getting-started/installation-and-first-run/configuration-options) — to tailor benchmarks
+- [Troubleshooting Common Issues](https://documentation/getting-started/validation-and-troubleshooting/troubleshooting-common-issues) — for resolving errors and pitfalls
+
+---
+
+## Summary
+This Quick Validation Checklist helps you rapidly confirm that ORM Benchmark's core services and benchmarks are functioning. It walks through service verification, executing basic tests, and interpreting benchmark output to ensure readiness.
+
+For deeper understanding:
+- Learn about environment setup in [Cloning and Setup](https://documentation/getting-started/installation-and-first-run/cloning-and-setup)
+- Run and customize benchmarks in [Running Your First Benchmark](https://documentation/getting-started/installation-and-first-run/running-your-first-benchmark) and [Configuration Options](https://documentation/getting-started/installation-and-first-run/configuration-options)
+- Resolve issues with [Troubleshooting Common Issues](https://documentation/getting-started/validation-and-troubleshooting/troubleshooting-common-issues)
+
+This page ensures you're ready to confidently proceed with benchmarking and performance analysis.
+
+---
+
+## Troubleshooting Tips Inline
+
+<AccordionGroup title="Troubleshooting Quick Checks">
+<Accordion title="PostgreSQL Service Not Running">
+- Use `docker-compose up -d` to start.
+- Confirm with `docker-compose ps`.
+- Verify port `5432` is open and not blocked by firewall.
+</Accordion>
+<Accordion title="Cannot Connect to Database">
+- Check your `-source` flag DSN format.
+- Validate database user, password, and database name.
+- Confirm PostgreSQL accepts TCP connections.
+</Accordion>
+<Accordion title="Benchmark Panics or Failures">
+- Ensure database schema (`models` table) exists.
+- Running any benchmark triggers schema init, but confirm permissions allow table creation.
+- Check for errors in output before failure.
+</Accordion>
+<Accordion title="Missing or Malformed Output Reports">
+- Confirm that benchmarks ran to completion without exit or panic.
+- Re-run with minimal flags: `go run main.go -orm=raw_stmt -multi=1`
+- Redirect output to file for detailed review.
+</Accordion>
+</AccordionGroup>

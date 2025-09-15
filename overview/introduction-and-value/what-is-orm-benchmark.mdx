@@ -1,0 +1,135 @@
+---
+title: "What is ORM Benchmark?"
+description: "An overview of ORM Benchmark as a lightweight, Go-based performance comparison tool for major ORM libraries. Learn how it provides a fair, consistent environment for evaluating and comparing the speed and resource usage of different ORM solutions, helping you make informed decisions for data-access layers."
+---
+
+# What Is ORM Benchmark?
+
+## Delivering Fair, Consistent ORM Performance Insights
+
+ORM Benchmark is a lightweight, Go-based benchmarking tool designed to objectively compare the performance of popular Object-Relational Mapping (ORM) libraries. Whether you're deciding on an ORM for a new project or evaluating alternatives for an existing codebase, ORM Benchmark equips you with reliable metrics on speed, resource consumption, and operational behavior.
+
+- **Objective Comparison:** Runs benchmarks on multiple top ORMs under consistent conditions.
+- **Comprehensive Operations:** Measures Insert, MultiInsert, Update, Read, and MultiRead operations.
+- **Resource Profiling:** Offers CPU and memory profiling options for in-depth insights.
+- **Configurable Runs:** Supports running specific ORMs or all available ORMs with flexible concurrency.
+
+Designed primarily for Go developers and teams building scalable data-access layers, this tool demystifies ORM performance nuances so you can confidently select the right ORM for your application's needs.
+
+---
+
+## What Is ORM Benchmark?
+
+ORM Benchmark is a command-line application implemented in Go that executes standardized performance tests on multiple ORM libraries. It systematically runs a suite of benchmarks that simulate common database operations to reveal differences in throughput, latency, and resource allocation.
+
+By establishing a no-cache, freshly initialized environment for each test run, ORM Benchmark eliminates external variance and captures performance that reflects real-world usage under optimal conditions.
+
+#### Core Purpose
+
+- To empower developers with transparent, apples-to-apples performance data across ORMs.
+- To identify bottlenecks and efficiencies in key ORM operations such as inserts, bulk inserts, updates, and queries.
+- To guide informed technology choices when architecting or optimizing data access roads.
+
+#### What Makes ORM Benchmark Distinctive?
+
+- **No-Cache Mode:** Each ORM instance executes in isolation with fresh database schemas, ensuring results reflect ORM efficiency rather than cached state.
+- **Multiplexed Test Runs:** Supports scaling the number of query operations (`-multi` flag) to simulate workloads of various sizes.
+- **Broad ORM Support:** Benchmarks popular Go ORMs including `gorm`, `bun`, `beego_orm`, `xorm`, and others.
+- **Profiling Integration:** Optional CPU and memory profile generation for deeper performance diagnostics.
+
+#### How It Works, At a High Level
+
+Upon execution, ORM Benchmark prepares the database schema corresponding to each ORM’s data model. It then performs batches of database operations, tracking execution time and memory allocations. After completing all benchmarks, it collates and reports results for easy cross-comparison.
+
+---
+
+## Key Features & Capabilities
+
+- **Standardized Benchmark Suites:** Each ORM runs a uniform set of benchmarks including:
+  - Single-row Insert
+  - Bulk Insert of 100 rows
+  - Record Update
+  - Single-row Read
+  - Bulk Read with 100-row limit
+
+- **Flexible ORM Selection:** Run benchmarks for all ORMs or pick specific ones via command-line arguments.
+
+- **High Concurrency Testing:** The `-multi` parameter lets you multiply the base query counts, testing throughput at various scales.
+
+- **Profiling Support:** Flags to generate CPU (`-cpu`) and memory (`-mem`) profiles enable performance tuning.
+
+- **Detailed Result Reporting:** Summarizes execution duration, memory bytes consumed, and memory allocations per operation.
+
+- **Error Capture and Failures:** Any errors during benchmarking immediately halt tests and report failures clearly.
+
+### Real-World Scenario
+
+Imagine you’re building a new backend service and torn between ORMs. By running ORM Benchmark with your preferred concurrency (e.g., 20x base queries) against your Postgres instance credentials, you quickly see which ORM offers the fastest insert speed or least memory overhead. This actionable insight guides your ORM selection confidently.
+
+---
+
+## Why Should I Care?
+
+### Benefits You Can Expect
+
+- **Data-Driven Decisions:** Replace guesswork with measurable performance characteristics.
+- **Optimized Performance:** Identify fastest options for your workload profile, improving app responsiveness.
+- **Reduced Resource Costs:** Choose ORMs that consume fewer CPU cycles and memory.
+
+### Common Use Cases
+
+- **Technology Evaluation:** Compare multiple ORMs before committing to one.
+- **Performance Regression Testing:** Monitor ORM efficiency after codebase or dependency changes.
+- **Capacity Planning:** Benchmark with increased concurrency to understand scalability.
+
+### Before and After
+
+| Without ORM Benchmark                     | With ORM Benchmark                             |
+|------------------------------------------|-----------------------------------------------|
+| Selection based on popularity or guesswork | Selection based on empirical evidence          |
+| Unexpected bottlenecks in production     | Proactively optimized ORM choice               |
+| Difficult to justify architecture choices| Data-backed rationale for ORM decisions       |
+
+### ROI Indicators
+
+- Save development time by avoiding trial-and-error.
+- Prevent potential performance issues early.
+- Improve end-user experience by reducing data access latency.
+
+---
+
+## Getting Started Preview
+
+Getting started is straightforward:
+
+- **Prerequisites:** A Postgres database accessible with valid credentials.
+- **Setup:** Run `docker-compose up` to prepare dependencies.
+- **Run Benchmarks:** Execute commands like `go run main.go -multi=20 -orm=all` to benchmark all ORMs with 20x query multiplier.
+
+Output includes detailed runtime statistics and a summarized comparative report.
+
+For full setup and configuration details, see [Cloning the Repository & Setting Up](/getting-started/installation-and-first-run/cloning-and-setup) and [Running Your First Benchmark](/getting-started/installation-and-first-run/running-your-first-benchmark).
+
+<Tip>
+To maximize comparability, ensure you run benchmarks on a dedicated machine with minimal background load. Adjust the `-multi` flag to simulate load matching your expected production environment.
+</Tip>
+
+---
+
+## Example Command
+
+```bash
+# Run all supported ORMs with 20x base query load
+go run main.go -multi=20 -orm=all
+
+# Run only GORM with CPU profiling enabled
+go run main.go -multi=20 -orm=gorm -cpu
+```
+
+---
+
+## Summary
+
+ORM Benchmark demystifies ORM selection by offering a controlled, reliable way to measure the speed and efficiency of major Go ORM libraries. With clear benchmarks and profiling options, it helps developers choose the best data access technology for their applications.
+
+---

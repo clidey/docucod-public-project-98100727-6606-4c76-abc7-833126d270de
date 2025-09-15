@@ -1,0 +1,215 @@
+---
+title: "Running Your First Benchmark"
+description: "Shows how to execute the main benchmarking script with default and custom parameters, including selecting ORMs and adjusting concurrency. Highlights expected outputs and where to look for results."
+---
+
+# Running Your First Benchmark
+
+This guide walks you through executing the main benchmarking script in ORM Benchmark, demonstrating how to run default benchmarks, customize parameters like concurrency and ORM selection, and interpret outputs to verify success. By the end, you will have a clear understanding of how to launch your first benchmark and where to find detailed results.
+
+---
+
+## 1. Preparing to Run the Benchmark
+
+Before you launch a benchmark, ensure that your environment is set up with all prerequisites met, including a running PostgreSQL instance and the ORM Benchmark repository cloned. If you haven't completed these steps, refer back to the following guides:
+
+- [Cloning the Repository & Setting Up](./cloning-and-setup)
+- [System Requirements](./system-requirements)
+- [Installing Dependencies](./installing-dependencies)
+
+
+<Tip>
+Having a PostgreSQL container running via Docker Compose is critical before executing benchmarks. The default connection string points to `localhost:5432`.
+</Tip>
+
+---
+
+## 2. Running the Benchmark with Default Settings
+
+The entry point for running benchmarks is the `main.go` script. To execute all ORM benchmarks with default concurrency and connection settings, run:
+
+```bash
+go run main.go -orm=all
+```
+
+This command runs benchmarks across all supported ORMs sequentially with the default multiplier of queries per test.
+
+---
+
+## 3. Customizing the Benchmark Run
+
+You can tailor your benchmarking session with several command-line flags:
+
+| Flag       | Description                                       | Default                                 |
+|------------|-------------------------------------------------|-----------------------------------------|
+| `-orm`     | Specifies which ORM benchmark(s) to run. Valid values are individual ORM names (e.g., gorm, bun, xorm) or `all` to run all. | `all` (all ORMs run)                    |
+| `-multi`   | Sets the base multiplier for the number of queries each benchmark executes. Higher values increase concurrency and load.| `1` (base query counts)                  |
+| `-max_idle`| Sets the maximum number of idle connections in the connection pool.| `200`                                   |
+| `-max_conn`| Sets the maximum number of open connections to the database.| `200`                                   |
+| `-source`  | PostgreSQL connection string (DSN). Change this if your database runs on a different host or port.| `postgres://postgres:postgres@localhost:5432/test?sslmode=disable` |
+| `-cpu`     | Enable CPU profiling and output results to file `cpu.pprof`.| `false`                                 |
+| `-mem`     | Enable memory profiling and output results to file `mem.pprof`.| `false`                                 |
+
+### Example: Run GORM and Bun ORMs with higher concurrency
+
+```bash
+go run main.go -orm=gorm -orm=bun -multi=20
+```
+
+>This runs only the `gorm` and `bun` ORM benchmarks, each executing 20 times more queries than the default.
+
+---
+
+## 4. Understanding the Command Execution Flow
+
+Upon running the command, the following occurs:
+
+- The tool sets the Go runtime to use all CPU cores for efficient execution.
+- It disables SSL mode for PostgreSQL connections by default.
+- If profiling is enabled, CPU and memory profiles start and will save to `cpu.pprof` and `mem.pprof`.
+- The ORM list is prepared and randomized in order.
+- For each selected ORM, the corresponding benchmark suite initializes its database connection and prepares benchmarks.
+- Each benchmark runs sequentially, printing out the benchmark name, the number of iterations, and timing/allocations results.
+- After all benchmarks execute, an aggregated report summarizes performance across ORMs.
+
+
+---
+
+## 5. Sample Output and Results
+
+Each benchmark line output shows:
+
+- Benchmark operation name (e.g., Insert, MultiInsert 100 row)
+- Number of iterations executed
+- Time taken (in seconds)
+- Nanoseconds per operation
+- Bytes allocated per operation
+- Number of allocations per operation
+
+Example output snippet:
+
+```plaintext
+                  Insert:  200 Insert
+                     200 MultiInsert 100 row
+                     200 Update
+                     200 Read
+                     200 MultiRead limit 100
+ Reports: 
+   200 times - Insert
+     gorm:    5.12s   25600 ns/op   1024 B/op    20 allocs/op
+      bun:    4.89s   24500 ns/op    980 B/op    18 allocs/op
+   ...
+```
+
+The benchmark report enables quick comparison of ORM performance. Lower time and allocations indicate better efficiency.
+
+<Tip>
+Watch for `FailNow()` error messages during execution. These indicate benchmark failures related to connection or query execution, and the benchmarking process will stop for that ORM.
+</Tip>
+
+---
+
+## 6. Common Pitfalls to Avoid
+
+- **Database not running:** Ensure your PostgreSQL service is active and reachable at the DSN you provide.
+- **Connection issues:** Check firewall rules, port forwarding, and Docker Compose status if using containerized DB.
+- **ORM names misspelled:** The `-orm` flag accepts specific names like `gorm`, `bun`, `xorm`, `beego_orm`, `gorm_v1`, or `raw_stmt`. Using unsupported names will error.
+- **MultiInsert limitations:** Some ORMs (e.g., `gorm_v1` or `xorm`) do not support multi-insert benchmarks due to known issues and will fail intentionally.
+
+---
+
+## 7. Locating Benchmark Reports and Profiles
+
+- **Console output:** The primary benchmark results and summaries appear in your terminal immediately after running.
+- **Profiles:** If enabled with `-cpu` or `-mem`, CPU and memory profiles are saved as `cpu.pprof` and `mem.pprof` in the current directory. These files can be analyzed with Go's pprof tool for deep performance insights:
+
+```bash
+go tool pprof cpu.pprof
+```
+
+---
+
+## 8. Next Steps
+
+Once you have successfully run your first benchmark, consider:
+
+- Exploring the [Configuration & Customization Options](./configuration-options) to fine-tune benchmark parameters.
+- Reviewing the [Interpreting and Comparing Benchmark Results](../../guides/benchmark-workflows/interpreting-results) for deeper insights.
+- Investigating [Profiling and Performance Optimization Tips](../../guides/benchmark-workflows/profiling-optimization) for advanced analysis.
+
+For troubleshooting, see the [Troubleshooting Common Issues](./../validation-and-troubleshooting/troubleshooting-common-issues) guide.
+
+---
+
+## Quick Reference: Running Your First Benchmark
+
+<Steps>
+<Step title="Verify Environment Readiness">
+Make sure PostgreSQL is running and connection DSN is correctly set.
+</Step>
+<Step title="Run All Benchmarks with Defaults">
+Execute:
+```bash
+go run main.go -orm=all
+```
+</Step>
+<Step title="Run Selected ORMs with Increased Load">
+Try:
+```bash
+go run main.go -orm=gorm -orm=bun -multi=20
+```
+</Step>
+<Step title="Review Output and Reports">
+Examine command line output for benchmark timings and allocation stats.
+</Step>
+<Step title="Enable Profiling (Optional)">
+Add `-cpu` and/or `-mem` flags to collect profiling data.
+</Step>
+</Steps>
+
+---
+
+With these steps, you are ready to measure and compare performance across multiple Go ORMs reliably.
+
+
+---
+
+## References
+
+- [Cloning the Repository & Setting Up](./cloning-and-setup)
+- [Configuration & Customization Options](./configuration-options)
+- [System Requirements](./system-requirements)
+- [Installing Dependencies](./installing-dependencies)
+- [Troubleshooting Common Issues](./../validation-and-troubleshooting/troubleshooting-common-issues)
+- [Supported ORMs & Technologies](../../overview/architecture-and-core-concepts/supported-orms)
+
+
+
+---
+
+## Additional Tips
+
+<AccordionGroup title="Best Practices When Running Benchmarks">
+<Accordion title="Use the Latest Stable Go Version">
+Using the latest Go runtime ensures that benchmark results reflect current performance optimizations.
+</Accordion>
+<Accordion title="Run on an Idle System">
+Avoid heavy background activity on your testing machine to get stable and comparable benchmark results.
+</Accordion>
+<Accordion title="Repeat Benchmarks">
+Run multiple times and compare results for consistency.
+</Accordion>
+<Accordion title="Start with Low Concurrency">
+Begin with `-multi=1` and increase gradually to observe behavior under load.
+</Accordion>
+</AccordionGroup>
+
+<Note>
+Remember that `multi-insert` benchmarks may fail on some ORMs due to library limitations; this is expected and part of the benchmarking scope.
+</Note>
+
+---
+
+## Summary
+This page guides you through running ORM Benchmark’s main executable, illustrating how to launch default and customized benchmarking sessions, interpret real-time output, and locate reports for analysis.
+

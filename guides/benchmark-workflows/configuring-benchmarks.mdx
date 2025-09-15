@@ -1,0 +1,293 @@
+---
+title: "Configuring Benchmarks for Different ORMs"
+description: "Master the process of benchmarking multiple ORMs or individual ones. Understand available flags (e.g., concurrency, ORM selection), and learn to customize your test suite to answer real-world performance questions."
+---
+
+# Configuring Benchmarks for Different ORMs
+
+Master the process of benchmarking various Object-Relational Mapping (ORM) libraries with ORM Benchmark. This guide focuses specifically on configuring benchmark runs for multiple ORMs or selecting individual ones, helping you tailor benchmarks to reflect real-world usage and performance evaluation scenarios.
+
+---
+
+## 1. Understanding Benchmark Configuration
+
+### What This Guide Covers
+
+This guide helps you configure and run benchmarks across different supported Go ORMs, including GORM (v1 and v2), Bun, Beego ORM, XORM, and raw SQL access. It explains how to use command-line flags to select ORMs, control concurrency, customize benchmark run parameters, and interpret the setup to obtain meaningful comparative results.
+
+### Prerequisites
+
+- A working ORM Benchmark environment with PostgreSQL set up (preferably via Docker Compose).
+- Basic understanding of benchmarking terminology (iterations, concurrency, ORM suites).
+- Go development environment set for executing the benchmark program.
+
+### Expected Outcome
+
+By following this guide, you will:  
+- Successfully configure the benchmark to run all or selected ORMs.
+- Understand important flags such as concurrency (`-multi`) and ORM selection (`-orm`).
+- Customize your benchmark execution flow to produce interpretable and actionable performance data.
+
+### Time Estimate
+
+15–30 minutes to configure and launch the benchmark, depending on environment readiness.
+
+### Difficulty Level
+
+Intermediate — requires command-line familiarity and some experience with database benchmarking.
+
+---
+
+## 2. Configuring Benchmark Runs: Step-by-Step
+
+<Steps>
+<Step title="Step 1: Prepare Your Environment">
+Ensure your PostgreSQL database is running, configured via Docker Compose or accessible remotely. Confirm your `ORM_SOURCE` connection string points correctly to your database.
+
+_Tip_: Use the default DSN `postgres://postgres:postgres@localhost:5432/test?sslmode=disable` or adjust accordingly.
+</Step>
+
+<Step title="Step 2: Select ORMs to Benchmark">
+Use the `-orm` flag to specify which ORM(s) to test.
+
+- To run all supported ORMs: `-orm=all`
+- To benchmark individual ORMs, specify their brand names (e.g., `-orm=gorm`, `-orm=xorm`).
+
+The available ORMs include:
+- gorm (GORM v2)
+- gorm_v1 (GORM v1)
+- bun
+- beego_orm
+- xorm
+- raw_stmt (raw database/sql)
+
+Example:
+
+```bash
+go run main.go -multi=20 -orm=gorm
+```
+
+This runs GORM benchmarks with 20 times concurrency.
+
+</Step>
+
+<Step title="Step 3: Adjust Concurrency with `-multi` Flag">
+Control the concurrency level of benchmarks using the `-multi` flag.
+
+- The concurrency multiplier scales how many base queries run concurrently.
+- Increasing `-multi` simulates higher load to uncover how ORMs perform under stress.
+
+Example:
+
+```bash
+go run main.go -multi=10 -orm=all
+```
+
+This runs all ORMs with concurrency scaled by 10.
+
+</Step>
+
+<Step title="Step 4: Specify Connection Pool Settings (Optional)">
+Use these flags to tune connection pooling, useful for simulating production environments:
+
+- `-max_idle` to set the maximum number of idle connections (default 200).
+- `-max_conn` to set the maximum number of open connections (default 200).
+
+Example:
+
+```bash
+go run main.go -orm=beego_orm -max_idle=50 -max_conn=100
+```
+
+</Step>
+
+<Step title="Step 5: Enable Profiling (Optional, Advanced)">
+To diagnose performance bottlenecks, enable CPU and memory profiling:
+
+- `-cpu` enables CPU profiling and generates `cpu.pprof`.
+- `-mem` enables memory profiling and generates `mem.pprof`.
+
+Example:
+
+```bash
+go run main.go -orm=raw_stmt -cpu -mem
+```
+
+These profiles can be analyzed with `go tool pprof` after benchmarking.
+
+</Step>
+
+<Step title="Step 6: Run the Benchmark and Review Results">
+Run your tailored benchmark command. Results for each ORM and operation will print in concise lines showing:
+
+- Total execution time
+- Nanoseconds per operation
+- Memory bytes allocated per operation
+- Number of allocations per operation
+
+After running all benchmarks, a comparative report is displayed summarizing performance across ORMs.
+
+Example output snippet:
+
+```plaintext
+                Insert: 1200  10.50s  8750 ns/op   800 B/op  15 allocs/op
+                 Read: 1200  8.70s   7250 ns/op   600 B/op  12 allocs/op
+
+Reports:
+     2400 times - Insert
+       gorm:   18.50s  7710 ns/op   750 B/op  14 allocs/op
+       bun:    15.30s  6400 ns/op   680 B/op  10 allocs/op
+```
+
+</Step>
+</Steps>
+
+---
+
+## 3. Important Flags and Their Impact
+
+| Flag           | Description                                         | Default   |
+|----------------|-----------------------------------------------------|-----------|
+| `-orm`         | Specify ORMs to benchmark ('all' or comma-separated ORMs) | all       |
+| `-multi`       | Concurrency multiplier for queries                  | 1         |
+| `-source`      | Postgres DSN connection string                       | localhost postgres URL |
+| `-max_idle`    | Maximum idle DB connections                          | 200       |
+| `-max_conn`    | Maximum open DB connections                          | 200       |
+| `-cpu`         | Enable CPU profiling                                 | false     |
+| `-mem`         | Enable memory profiling                              | false     |
+
+
+<Tip>
+Choosing proper concurrency settings (`-multi`) is key to realistic load simulation. Start with `1` and increase gradually.
+</Tip>
+
+---
+
+## 4. Real-World Scenarios
+
+### Scenario 1: Benchmark All ORMs with Moderate Concurrency
+
+Run all ORM benchmarks to compare general performance under medium load.
+
+```bash
+ go run main.go -multi=5 -orm=all
+```
+
+### Scenario 2: Focus on GORM Performance with High Concurrency
+
+Test GORM v2 under heavy concurrent operations to evaluate real-time API performance.
+
+```bash
+ go run main.go -multi=20 -orm=gorm
+```
+
+### Scenario 3: Run a Lightweight Raw SQL Benchmark
+
+Isolate raw SQL performance using `raw_stmt` ORM to evaluate base database query speed.
+
+```bash
+ go run main.go -orm=raw_stmt -multi=3
+```
+
+---
+
+## 5. Common Pitfalls and Troubleshooting
+
+<AccordionGroup title="Troubleshooting Configuration Issues">
+<Accordion title="Problem: Benchmark does not start or reports 'wrong run name' error">
+
+This happens if the `-orm` value is misspelled or unsupported.
+
+**Solution:** Use `-orm=all` or verify ORM names from the available list printed by the program or documentation.
+
+</Accordion>
+<Accordion title="Problem: PostgreSQL connection errors or timeouts">
+
+Check that the PostgreSQL server is running and accessible via the DSN string set in `-source`.
+
+Verify your network, Docker container status, and database credentials.
+
+</Accordion>
+<Accordion title="Problem: Benchmark reports 'doesn't work' error in multi-insert tests">
+
+Some ORMs (e.g., GORM v1 and XORM) do not support multi-insert properly and emit a panic.
+
+**Action:** Skip these specific benchmarks by focusing on ORMs supporting multi-insert or contributing fixes.
+
+</Accordion>
+<Accordion title="Problem: Benchmarks run but results are inconsistent or slow">
+
+Confirm your environment has sufficient CPU and memory resources. Max connections (`-max_conn`) and idle connections (`-max_idle`) may be too restrictive.
+
+Try increasing these limits or reducing concurrency.
+
+</Accordion>
+</AccordionGroup>
+
+<Tip>
+Always reset your database state before benchmark runs to ensure consistent conditions. The benchmarks automate this via SQL table resets.
+</Tip>
+
+---
+
+## 6. Summary & Next Steps
+
+### After Configuring Benchmarks
+- Review benchmark outputs and focus on ORM behavior for your application's common operations (Insert, Update, Read).
+- Explore profiling data if CPU or memory flags were enabled to diagnose bottlenecks.
+
+### Related Guides to Explore
+- [Interpreting and Comparing Benchmark Results](../interpreting-results): Learn to analyze benchmark outcomes to inform ORM selection.
+- [Profiling and Performance Optimization Tips](../profiling-optimization): Understand how to profile your benchmarks for deeper insights.
+- [Integrating Custom ORMs and Raw SQL](../../advanced-scenarios/integrating-custom-orms): Extend benchmarking to your own ORM or native queries.
+
+---
+
+## 7. Code Example: Running a GORM Benchmark with Custom Concurrency
+
+```bash
+# Run GORM benchmarks with concurrency multiplier of 10
+
+go run main.go -multi=10 -orm=gorm
+```
+
+This command initializes the GORM benchmark suite, runs Insert, MultiInsert, Update, Read, and MultiRead tests, scaling each by 10 times the base query count.
+
+---
+
+## 8. Diagram: User Flow for Configuring and Running ORMs Benchmarks
+
+```mermaid
+flowchart TD
+  Start([Start Benchmark]) --> CheckEnv{Is PostgreSQL Running?}
+  CheckEnv -->|No| SetupEnv[Setup Docker PostgreSQL]
+  CheckEnv -->|Yes| Configure[Select ORMs with -orm Flag]
+  Configure --> SetConcurrency[Set -multi Concurrency Multiplier]
+  SetConcurrency --> RunBenchmarks[Run Benchmark Suite]
+  RunBenchmarks --> Collect[Collect and Print Results]
+  Collect --> Analyze[Analyze Reports and Tune Options]
+  Analyze --> End([Finish])
+  SetupEnv --> Configure
+```
+
+---
+
+## 9. Additional Tips
+
+- When running multiple ORMs (`-orm=all`), results will be shuffled internally to reduce bias.
+- Use the `-cpu` and `-mem` flags only for profiling runs, as they add overhead.
+- Verify database connection pool sizes match your concurrency (`-multi`) for optimal resource use.
+
+
+---
+
+For full environment setup, see [Integration & Setup Overview](/overview/architecture-and-core-concepts/integration-and-setup).
+For supported ORMs and capabilities, see [Supported ORMs & Technologies](/overview/architecture-and-core-concepts/supported-orms).
+
+---
+
+_Internal references to source and related benchmarks are available on the GitHub repository._
+
+<Source url="https://github.com/go-gorm/orm-benchmark" branch="main" paths={[{path: "main.go", range: "1-122"}]} />
+
+---

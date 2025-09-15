@@ -1,0 +1,276 @@
+---
+title: "Troubleshooting Common Issues"
+description: "Identifies frequent problems (e.g., failed Docker containers, missing dependencies, ORM misconfiguration), how they manifest, and tested solutions or workarounds for each. Empowers users to resolve setup blockers independently."
+---
+
+# Troubleshooting Common Issues
+
+This guide empowers you to quickly identify and resolve frequent issues encountered when setting up or running ORM Benchmark. By addressing common blockers such as failed Docker containers, missing dependencies, and ORM misconfigurations, you'll swiftly regain momentum and ensure your benchmarking environment runs smoothly.
+
+---
+
+## 1. Docker Container Failures
+
+Many users rely on Docker Compose to provision the PostgreSQL environment needed for benchmarking. Problems here can halt your entire flow.
+
+### Symptoms
+- `docker-compose up` exits early or fails to start the PostgreSQL container.
+- Benchmarking reports errors connecting to the database.
+- Postgres service is unreachable on the expected ports.
+
+### Solutions
+<Steps>
+<Step title="Verify Docker and Docker Compose Installation">
+Ensure Docker and Docker Compose are installed and running properly by executing:
+
+```bash
+docker --version
+docker-compose --version
+```
+
+If these commands fail, reinstall Docker following the official setup guides for your OS.
+</Step>
+<Step title="Check Docker Compose Logs">
+Run:
+
+```bash
+docker-compose logs postgres
+```
+
+Look for errors indicating port conflicts, permission issues, or resource constraints.
+
+Resolve conflicts by stopping other services using port 5432 or adjusting the Docker Compose port mapping.
+</Step>
+<Step title="Restart Docker Compose Environment">
+Restart the environment to reset state:
+
+```bash
+docker-compose down
+```
+
+then
+
+```bash
+docker-compose up -d
+```
+
+Confirm the container is running:
+
+```bash
+docker ps
+```
+</Step>
+<Step title="Validate PostgreSQL Service Availability">
+Run a quick connectivity test:
+
+```bash
+pg_isready -h localhost -p 5432
+```
+
+Alternatively, connect with psql:
+
+```bash
+psql -h localhost -U postgres -p 5432 -d test
+```
+
+If connection fails, review firewall and networking settings.
+</Step>
+</Steps>
+
+---
+
+## 2. Missing or Misconfigured Dependencies
+
+Missing Go modules, incorrect Go versions, or absent PostgreSQL drivers can cause failures before benchmarking even starts.
+
+### Symptoms
+- `go run main.go` fails with errors about missing packages or modules.
+- Runtime panics related to database/sql or pq driver.
+
+### Solutions
+<Steps>
+<Step title="Ensure Go Is Installed and in PATH">
+Verify Go installation:
+
+```bash
+go version
+```
+
+Confirm it meets the minimum required version noted in the [System Requirements](/getting-started/setup-prerequisites/system-requirements).
+</Step>
+<Step title="Download All Dependencies via Go Modules">
+Inside your cloned repository root, run:
+
+```bash
+go mod tidy
+```
+
+This ensures all dependencies, including PostgreSQL drivers (`github.com/lib/pq`), are fetched and ready.
+</Step>
+<Step title="Check Environment Variables">
+Confirm that `GOPATH` and `GOROOT` are correctly set if you use a custom Go environment.
+
+
+```bash
+echo $GOPATH
+```
+
+If empty, Go will use default settings.
+</Step>
+<Step title="Verify PostgreSQL Driver Presence">
+The project uses the `lib/pq` driver explicitly. Errors indicating missing driver usually mean that `go mod tidy` was not run successfully.
+
+Re-run dependency installation and ensure no errors.
+</Step>
+</Steps>
+
+---
+
+## 3. ORM Misconfiguration or Specific Benchmark Failures
+
+Individual ORM benchmarks depend on initializing database schemas and proper connection strings. Errors here manifest during benchmark runs.
+
+### Common Symptoms and Remedies
+
+### 3.1 Incorrect PostgreSQL DSN or Connection String
+
+- Error messages reference inability to connect or authenticate.
+- Benchmarks terminate early.
+
+**Fix:**
+- Confirm your `-source` flag (PostgreSQL connection string) matches your running PostgreSQL instance.
+- The default DSN is:
+
+  ```
+  postgres://postgres:postgres@localhost:5432/test?sslmode=disable
+  ```
+
+- If you customize credentials or ports, update your run command accordingly. Example:
+
+  ```bash
+go run main.go -source "postgres://user:password@localhost:5432/test?sslmode=disable" -orm=all
+  ```
+
+### 3.2 Schema Initialization Failures
+
+- Benchmarks indicating missing tables such as `models`, `beego_model`, `xorm_model`, or errors during `DROP TABLE`/`CREATE TABLE` SQL statements.
+
+**Fix:**
+- The benchmark runs auto-initialize schemas but failures may arise if permissions are insufficient or connections faulty.
+- Double-check that the PostgreSQL user has rights to create tables in the `test` database.
+- Manually reset the schema by connecting to Postgres and dropping/fixing tables.
+
+### 3.3 ORM Benchmark Panics on Specific Tests
+
+- Some benchmarks for multi-insert operations report panics or `doesn't work` errors (e.g., GormV1, XORM multi-insert).
+
+**Fix:**
+- These panics are coded explicitly where certain ORM features are unsupported in this benchmark suite.
+- Avoid running those particular benchmarks if they fail:
+
+  ```bash
+go run main.go -orm=gorm,bun,beego_orm,raw
+  ```
+  
+  skipping `gorm_v1` or `xorm` multi-insert tests avoids panics.
+
+### 3.4 Connection Pool Configuration Issues
+
+- Errors or performance drops linked to connection saturation.
+
+**Fix:**
+- Tune the connection pools via flags `-max_idle` and `-max_conn`. For example:
+
+  ```bash
+go run main.go -max_idle=50 -max_conn=100
+  ```
+
+- Ensure your PostgreSQL server allows enough connections to handle these settings.
+
+---
+
+## 4. Common Command Errors & How to Avoid Them
+
+### Problem: Running Benchmark Without Cloning Repository
+
+- `go run main.go` returns "file not found" or package resolution errors.
+
+**Fix:**
+- Ensure you are inside the cloned project directory:
+
+  ```bash
+git clone https://github.com/go-gorm/orm-benchmark.git
+cd orm-benchmark
+  ```
+
+### Problem: Semaphore or Lock Issues on Repeated Runs
+
+- Docker or Postgres locking issues causing hang or slow startup.
+
+**Fix:**
+- Use `docker-compose down` to clean up.
+- Restart Docker service if needed.
+
+---
+
+## 5. Additional Troubleshooting Tips
+
+- Always inspect logs and console output carefully for hints.
+- Use verbose mode in Docker Compose:
+
+  ```bash
+docker-compose up --build
+  ```
+
+- Check for port conflicts on 5432.
+- Confirm your system meets [System Requirements](/getting-started/setup-prerequisites/system-requirements).
+
+---
+
+## 6. When to Get Further Help
+
+If you’ve exhausted these troubleshooting steps:
+
+- Review the [Quick Validation Checklist](/getting-started/validation-and-troubleshooting/quick-validation).
+- Consult the [System Architecture](/overview/architecture-and-core-concepts/system-architecture) and [Integration & Setup Overview](/overview/architecture-and-core-concepts/integration-and-setup) documentation.
+- Report issues or seek community support via the ORM Benchmark GitHub repository:
+
+  [https://github.com/go-gorm/orm-benchmark/issues](https://github.com/go-gorm/orm-benchmark/issues)
+
+
+---
+
+## Appendix: Common Commands for Validation and Recovery
+
+```bash
+# Check docker containers
+docker ps
+
+# Check docker logs
+docker-compose logs postgres
+
+# Stop and remove all containers
+docker-compose down
+
+# Restart docker-compose environment
+docker-compose up -d
+
+# Verify postgres connection
+pg_isready -h localhost -p 5432
+
+psql -h localhost -U postgres -d test
+
+# Install Go dependencies
+go mod tidy
+
+# Run benchmark with all ORMs and tuned concurrency
+go run main.go -multi=20 -orm=all -max_idle=100 -max_conn=100
+```
+
+<Tip>
+Successful troubleshooting starts with validating each stage: your environment (Docker, Go), database availability, and ORM configurations. Addressing issues methodically saves time and reduces frustration.
+</Tip>
+
+<Warning>
+Do not modify internal benchmark code to fix errors unless you understand impacts. Unsupported ORM features may intentionally result in failed operations; these are documented behaviors, not runtime errors.
+</Warning>

@@ -1,0 +1,211 @@
+---
+title: "Setting Up Your Environment"
+description: "Learn how to prepare your system for ORM benchmarking using Docker and Go. This guide covers Docker environment setup, dependency installation, and project bootstrapping to ensure you are ready to run reliable benchmarks."
+---
+
+# Setting Up Your Environment
+
+Prepare your system to accurately benchmark ORM libraries with the ORM Benchmark tool. This guide leads you through setting up a Docker-based PostgreSQL environment, installing required dependencies, and bootstrapping the project for your first performance tests. By following these steps, you'll create a clean and consistent environment ensuring reliable benchmarking results.
+
+---
+
+## 1. Workflow Overview
+
+- **Task Description**: Get your machine ready to run ORM Benchmark by configuring the PostgreSQL database with Docker, installing Go and its tools, and bootstrapping the project dependencies.
+- **Prerequisites**: 
+  - Docker installed and running on your system
+  - Go programming language environment installed
+  - Basic familiarity with the command line
+- **Expected Outcome**: 
+  - A running PostgreSQL container tailored for benchmarks
+  - All Go dependencies fetched and project ready to execute benchmarks
+  - An environment that mirrors production-like settings for reliable ORM comparisons
+- **Time Estimate**: Approximately 15-30 minutes depending on network speed and system performance
+- **Difficulty Level**: Beginner to Intermediate
+
+---
+
+## 2. Step-by-Step Instructions
+
+### Step 1: Start PostgreSQL via Docker Compose
+
+1. Navigate to the project directory containing the `docker-compose.yml` file.
+2. Run the following command to launch the PostgreSQL service:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+3. Verify the container is running:
+
+   ```bash
+   docker ps
+   ```
+
+4. Confirm the database is accessible on port 5432 (default). You can connect using a tool like `psql` or a database client.
+
+<Tip>
+Use `docker-compose logs` to check the database initialization logs and troubleshoot if startup fails.
+</Tip>
+
+### Step 2: Install Go Language (if not installed)
+
+1. Download and install Go from [https://golang.org/dl/](https://golang.org/dl/). Ensure you install a supported version (Go 1.16 or later recommended).
+2. Set your `GOPATH` and update your `PATH` appropriately.
+3. Verify installation:
+
+   ```bash
+   go version
+   ```
+
+<Tip>
+For Windows or macOS users, follow platform-specific installation instructions for environment variables.
+</Tip>
+
+### Step 3: Clone the ORM Benchmark Repository
+
+1. Using `git`, clone the repository:
+
+   ```bash
+   git clone https://github.com/go-gorm/orm-benchmark.git
+   cd orm-benchmark
+   ```
+
+2. Confirm you are on the `main` branch:
+
+   ```bash
+   git checkout main
+   ```
+
+### Step 4: Fetch Dependencies and Build the Project
+
+1. Inside the project directory, run:
+
+   ```bash
+   go mod download
+   go build -o orm-benchmark main.go
+   ```
+
+2. This prepares the binary and ensures all dependencies like ORM drivers and benchmarking tools are installed.
+
+<Tip>
+If you encounter errors during dependency installation, check your internet connection and Go environment configuration.
+</Tip>
+
+### Step 5: Configure Environment Variables for PostgreSQL
+
+Before running benchmarks, ensure your environment variables or flags point to the right PostgreSQL connection string. By default, it is:
+
+```
+postgres://postgres:postgres@localhost:5432/test?sslmode=disable
+```
+
+You can override this using the `-source` flag when running the benchmark.
+
+### Step 6: Run an Initial Smoke Test
+
+1. To confirm environment readiness, run the benchmark with minimal concurrency for all supported ORMs:
+
+   ```bash
+   go run main.go -multi=1 -orm=all
+   ```
+
+2. Check the command output for errors and ensure benchmark results are generated and printed.
+
+<Check>
+This step is crucial to catch any misconfiguration before more intensive benchmarking.
+</Check>
+
+---
+
+## 3. Examples & Command Samples
+
+### Run Benchmark for All ORMs with High Concurrency
+
+```bash
+go run main.go -multi=20 -orm=all
+```
+
+This command runs the benchmark suites for all supported ORMs with 20x concurrency scaling.
+
+### Run Benchmark for a Specific ORM (e.g., GORM)
+
+```bash
+go run main.go -multi=10 -orm=gorm
+```
+
+### Customize Database Connection String
+
+```bash
+go run main.go -source="postgres://user:pass@localhost:5432/dbname?sslmode=disable" -orm=all
+```
+
+---
+
+## 4. Troubleshooting & Tips
+
+### Common Issues
+
+- **Docker Container Fails to Start**: Check if port 5432 is already in use. Stop the conflicting services or change the PostgreSQL port in `docker-compose.yml`.
+
+- **Go Dependency Failures**: Ensure your Go version is compatible and GOPROXY settings permit module fetching.
+
+- **Database Connection Errors**: Verify the connection string and that PostgreSQL is accepting connections without SSL if using `sslmode=disable`.
+
+- **Permission Denied Errors on Windows**: Run Docker and your terminal with administrator rights.
+
+### Best Practices
+
+- Always start your PostgreSQL container freshly for clean benchmarks (use `docker-compose down` to stop and remove existing containers).
+- Use the `-multi` flag to adjust workload concurrency to mirror your expected real-world use case.
+- Profile CPU and memory with the `-cpu` and `-mem` flags for deeper performance insights.
+
+### Performance Considerations
+
+- Ensure your system has adequate resources (CPU cores, RAM) to run benchmarks at target concurrency levels without resource exhaustion.
+- Disable other heavy applications during benchmarking for more consistent results.
+
+---
+
+## 5. Next Steps & Related Content
+
+- After setting up your environment, proceed to the [Running Your First Benchmark](../running-first-benchmark) guide for how to execute and interpret benchmark results.
+- Explore [Configuration & Customization Options](../configuration-options) for tailoring benchmarks to specific scenarios.
+- Reference [Troubleshooting Common Issues](../../validation-and-troubleshooting/troubleshooting-common-issues) if you encounter problems during setup.
+
+---
+
+## Diagram: Environment Setup Workflow
+
+```mermaid
+flowchart TD
+  Start([Start Setup]) --> CheckDocker[Check Docker Installed & Running]
+  CheckDocker -->|Yes| DockerUp[Run Docker Compose Up]
+  CheckDocker -->|No| InstallDocker[Install Docker]
+  InstallDocker --> DockerUp
+  DockerUp --> VerifyDB[Verify PostgreSQL Running]
+  VerifyDB -->|Success| CheckGo[Check Go Installed]
+  VerifyDB -->|Fail| FixDocker[Fix Docker/PostgreSQL]
+  FixDocker --> DockerUp
+  CheckGo -->|Yes| CloneRepo[Clone Repository]
+  CheckGo -->|No| InstallGo[Install Go]
+  InstallGo --> CloneRepo
+  CloneRepo --> FetchDeps[Fetch Go Dependencies]
+  FetchDeps --> RunSmokeTest[Run Initial Smoke Test]
+  RunSmokeTest --> Success[Environment Ready]
+  RunSmokeTest --> Fail[Fix Issues & Retry]
+  Fail --> RunSmokeTest
+```
+
+---
+
+## Additional Resources
+
+- [ORM Benchmark GitHub Repository](https://github.com/go-gorm/orm-benchmark)
+- [Getting Started Navigation Tab](../../getting-started)
+- [Supported ORMs Overview](../../overview/architecture-and-core-concepts/supported-orms)
+- [System Requirements](../../getting-started/setup-prerequisites/system-requirements)
+
+---
+
+<section style="font-style:italic;">This page is part of the Getting Started guides within the ORM Benchmark documentation, designed to ensure your environment is stable, consistent, and optimized for meaningful ORM performance evaluations.</section>

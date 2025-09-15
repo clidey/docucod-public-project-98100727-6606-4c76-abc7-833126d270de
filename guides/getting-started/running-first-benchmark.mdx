@@ -1,0 +1,286 @@
+---
+title: "Running Your First Benchmark"
+description: "Follow a step-by-step walkthrough to execute your first ORM benchmark, interpret the output, and understand the essentials of benchmark configuration. This page helps new users achieve an initial benchmarking result with minimal friction."
+---
+
+# Running Your First Benchmark
+
+Welcome to the gateway of understanding ORM Benchmark. This guide walks you through confidently executing your first ORM benchmark, decoding the output, and grasping the essentials of configuring your benchmark runs. Designed for new users, it minimizes friction and sets you up for meaningful results right out of the gate.
+
+---
+
+## 1. What You Will Achieve
+
+- Execute a complete benchmark run against supported ORMs.
+- Understand the core command-line options that affect benchmark behavior.
+- Interpret the benchmark output to gauge ORM performance at a glance.
+- Learn how to customize the benchmark concurrency and ORM selection.
+
+**Time estimate:** Approximately 10-15 minutes.
+
+**Difficulty level:** Beginner.
+
+---
+
+## 2. Preparing to Run
+
+Before diving in, ensure you have completed the environment setup and prerequisite steps:
+
+- PostgreSQL database running and accessible (recommended via Docker Compose).
+- The ORM Benchmark repository cloned and all Go dependencies installed.
+- Confirmed your Go environment is ready for running Go programs.
+- Familiarity with basic command-line usage.
+
+If you’re unsure, please review the [System Requirements](../setup-prerequisites/system-requirements) and [Cloning the Repository & Setting Up](../installation-and-first-run/cloning-and-setup) guides first.
+
+---
+
+## 3. Running Your First Benchmark
+
+The benchmark executable is `main.go`. You run it using the Go command, with optional flags to tune your test:
+
+```bash
+# Run all benchmarks with default concurrency multiplier (1)
+go run main.go -orm=all
+
+# Run benchmark against GORM only with concurrency scaled 20 times
+# to simulate heavier load
+
+  go run main.go -orm=gorm -multi=20
+```
+
+### Key Flags Explained
+
+| Flag       | Purpose                                                     | Default           |
+|------------|-------------------------------------------------------------|-------------------|
+| `-orm`     | Selects which ORM(s) to benchmark. Use 'all' or specific names (`gorm`, `bun`, `beego_orm`, `xorm`, `raw_stmt`). | `all` (all ORMs)  |
+| `-multi`   | Multiplies the number of operations per benchmark run. Higher values simulate more load and concurrency. | 1                 |
+| `-source`  | The PostgreSQL connection string (DSN). Point this to your DB. | `postgres://postgres:postgres@localhost:5432/test?sslmode=disable` |
+| `-cpu`     | Enables CPU profiling, outputting to `cpu.pprof` file.       | false             |
+| `-mem`     | Enables memory profiling, outputting to `mem.pprof` file.   | false             |
+| `-max_idle`| Max idle connections in DB pool.                            | 200               |
+| `-max_conn`| Max total open connections in DB pool.                      | 200               |
+
+### Running the Command
+
+1. Open your terminal in the project root where `main.go` is located.
+2. Ensure your PostgreSQL database is running and accessible with the specified DSN.
+3. Execute the command with your chosen flags.
+
+    For a quick start, running all ORMs with default parameters is recommended:
+
+    ```bash
+go run main.go -orm=all
+```
+
+4. Watch the output stream benchmarks and results per ORM.
+
+---
+
+## 4. Understanding the Output
+
+The benchmark runs print timing, memory allocation, and operation count details for each test case within every ORM suite.
+
+Example output snippet:
+
+```text
+gorm
+              Insert: 1200000    3.45s   2875 ns/op   2048 B/op   150 allocs/op
+      MultiInsert 100 row: 1200000    2.10s   1750 ns/op   1024 B/op    90 allocs/op
+            Update: 1200000    3.00s   2500 ns/op   1500 B/op   120 allocs/op
+            Read: 1200000    2.85s   2375 ns/op   1800 B/op   140 allocs/op
+    MultiRead limit 100: 1200000    2.50s   2083 ns/op   1234 B/op    95 allocs/op
+
+Reports:
+    1200000 times - Insert
+       gorm:    3.45s   2875 ns/op   2048 B/op   150 allocs/op
+       bun:     3.75s   3125 ns/op   2100 B/op   170 allocs/op
+
+
+...
+```
+
+- The number on the left is the total operations (`-multi` × base count).
+- Next is the total duration for those operations.
+- `ns/op` represents average nanoseconds per operation — the lower, the faster.
+- `B/op` and `allocs/op` refer to memory usage and allocation counts per operation.
+
+Use this summary to compare ORM efficiency and resource consumption quickly.
+
+---
+
+## 5. Customizing Your Benchmark
+
+### Selecting Specific ORMs
+You can focus tests on one or several ORMs by specifying the `-orm` flag:
+
+```bash
+# Run only GORM and Bun benchmarks
+
+go run main.go -orm=gorm -orm=bun
+```
+
+If none is specified, the benchmark defaults to running all available ORM suites.
+
+### Adjusting Concurrency with `-multi`
+This flag simulates load by increasing the number of operations each benchmark runs:
+
+- `-multi=1` (default) runs the base number of operations.
+- Higher values multiply the operation count, increasing stress and revealing performance under heavier usage.
+
+We recommend starting with moderate values (e.g., 10 or 20) to gauge your system's response.
+
+### Connection Pool Tuning
+Control max idle and max open database connections:
+
+```bash
+# Set max idle connections to 100, max open connections to 150
+
+go run main.go -max_idle=100 -max_conn=150
+```
+
+Adjust these to optimize performance depending on your DB and hardware.
+
+### Enable Profiling
+For deeper performance analysis, enable CPU and memory profiling:
+
+```bash
+# Record CPU and memory profiles
+
+go run main.go -cpu -mem
+```
+
+This generates `cpu.pprof` and `mem.pprof` files you can examine with Go's pprof tool.
+
+---
+
+## 6. Step-by-Step Example: Running a Basic Benchmark
+
+<Steps>
+<Step title="Ensure PostgreSQL is running and reachable">
+Start your PostgreSQL instance locally or via Docker:
+
+```bash
+docker-compose up -d postgres
+```
+
+Verify connectivity with your DSN (default is `postgres://postgres:postgres@localhost:5432/test?sslmode=disable`).
+</Step>
+
+<Step title="Open your terminal in the ORM Benchmark directory">
+Navigate to the directory containing the `main.go` file.
+</Step>
+
+<Step title="Run the benchmark for all ORMs with default settings">
+Execute:
+
+```bash
+go run main.go -orm=all
+```
+
+You will see each ORM's benchmark suite print progress and results.
+</Step>
+
+<Step title="Interpret the printed output">
+Look for the timings and memory stats in `ns/op`, `B/op`, and `allocs/op` to understand efficiency.
+</Step>
+
+<Step title="Optional: Run with higher concurrency">
+Try increasing the load with `-multi`:
+
+```bash
+go run main.go -orm=gorm -multi=20
+```
+
+Observe how the performance metrics adjust under increased operations.
+</Step>
+</Steps>
+
+---
+
+## 7. Common Pitfalls and Troubleshooting
+
+<AccordionGroup title="Troubleshooting Tips for Running Your First Benchmark">
+<Accordion title="PostgreSQL Connection Errors">
+- Ensure PostgreSQL is running and accessible via the DSN specified in `-source`.
+- Check your network setup and database credentials.
+- Use `psql` or other SQL clients to test connection independently.
+</Accordion>
+
+<Accordion title="ORM Not Found or Invalid Name">
+- The `-orm` flag accepts specific names: `all`, `gorm`, `gorm_v1`, `bun`, `beego_orm`, `xorm`, and `raw_stmt`.
+- Any other string will cause an error.
+</Accordion>
+
+<Accordion title="High Memory or CPU Usage During Benchmark">
+- Lower `-multi` or connection pool settings `-max_idle`, `-max_conn` to reduce load.
+- Run benchmarks one ORM at a time for easier profiling.
+</Accordion>
+
+<Accordion title="Profiling Files Not Generated">
+- Verify `-cpu` and `-mem` flags are provided.
+- Check write permissions in your current directory.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 8. Next Steps
+
+- Explore [Configuration & Customization Options](../installation-and-first-run/configuration-options) to tailor benchmarks to your needs.
+- Review [Interpreting and Comparing Benchmark Results](../../guides/benchmark-workflows/interpreting-results) for in-depth analysis of outcomes.
+- For troubleshooting, see [Troubleshooting Common Issues](../validation-and-troubleshooting/troubleshooting-common-issues).
+
+Use these resources to progress from a first run to expert-level benchmarking and insightful ORM selection.
+
+---
+
+## Appendix: Quick Command Reference
+
+```bash
+# Run all benchmarks with default settings
+ go run main.go -orm=all
+
+# Run GORM only with 20x operations
+ go run main.go -orm=gorm -multi=20
+
+# Enable CPU and memory profiling
+ go run main.go -cpu -mem
+
+# Customize DB connection string
+ go run main.go -source="postgres://user:pass@host:5432/db?sslmode=disable"
+```
+
+---
+
+## Additional Resources
+
+For a broader understanding of how this fits into ORM Benchmark's ecosystem, see:
+
+- [Supported ORMs & Technologies](../../overview/architecture-and-core-concepts/supported-orms)
+- [System Architecture Overview](../../overview/architecture-and-core-concepts/system-architecture)
+- [Setting Up Your Environment](../../guides/getting-started/setup-environment)
+- [Quick Validation Checklist](../../getting-started/validation-and-troubleshooting/quick-validation)
+
+---
+
+## Visualizing the Benchmark Execution Flow
+
+```mermaid
+flowchart TD
+    Start([Start Benchmarking]) --> CheckEnv{Is DB Setup Correct?}
+    CheckEnv -->|Yes| Configure[Configure Benchmarks via Flags]
+    CheckEnv -->|No| SetupDB[Set up PostgreSQL Environment]
+    SetupDB --> Configure
+    Configure --> SelectORMs[Select ORMs to Run]
+    SelectORMs --> LaunchBench[Launch Each ORM Benchmark]
+    LaunchBench --> RunBench[Run Benchmark Suites]
+    RunBench --> CollectResults[Collect and Format Results]
+    CollectResults --> DisplayOutput[Display Output in Terminal]
+    DisplayOutput --> End([Benchmark Complete])
+
+    classDef decision fill:#f9f,stroke:#333,stroke-width:2px;
+    class CheckEnv decision;
+```
+
+This flow encapsulates your journey from initial environment verification to obtaining and understanding your benchmarking results.

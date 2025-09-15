@@ -1,0 +1,182 @@
+---
+title: "Cloning the Repository & Setting Up"
+description: "Step-by-step instructions for obtaining the ORM Benchmark source code, initializing the project, and preparing data/services via Docker Compose. Establishes a controlled testing environment."
+---
+
+# Cloning the Repository & Setting Up
+
+This guide walks you through obtaining the ORM Benchmark source code, initializing the project environment, and preparing the underlying services using Docker Compose. These steps establish a controlled, repeatable testing environment essential for accurate ORM performance benchmarking.
+
+---
+
+## 1. Clone the ORM Benchmark Repository
+
+Start by cloning the official repository from GitHub. This gives you access to the latest source code and configuration needed to run benchmarks.
+
+### Steps:
+
+```bash
+# Navigate to your desired working directory
+cd ~/projects
+
+# Clone the repository
+git clone https://github.com/go-gorm/orm-benchmark.git
+
+# Move into the cloned directory
+cd orm-benchmark
+```
+
+> Ensure your system has `git` installed. If not, install it from https://git-scm.com/downloads before cloning.
+
+<Check>You should see an `orm-benchmark` folder with project files such as `main.go`, `docker-compose.yml`, and `benchs` directory after cloning.</Check>
+
+---
+
+## 2. Initialize the Environment with Docker Compose
+
+ORM Benchmark uses Docker Compose to provision a PostgreSQL database container, creating a consistent backend for all ORM tests.
+
+### Steps:
+
+1. Confirm **Docker** and **Docker Compose** are installed and running on your system. If needed, consult the [Installing Dependencies](https://orm-benchmark.io/getting-started/setup-prerequisites/installing-dependencies) guide.
+2. From the root of the cloned `orm-benchmark` directory, launch Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+3. Docker Compose will download and start the official PostgreSQL image and set up the database with default configurations.
+
+4. Verify the container is running:
+
+```bash
+docker ps
+```
+
+Look for a container named similar to `orm-benchmark_postgres_1` with the status 'Up'.
+
+<Tip>
+Running PostgreSQL inside Docker ensures the database environment is isolated and reproducible across different systems, eliminating setup variations.
+</Tip>
+
+---
+
+## 3. Verify the Database Connection
+
+Your benchmark application must be able to connect to the PostgreSQL instance inside the Docker container using a connection string (DSN).
+
+### Default Connection String:
+
+```
+postgres://postgres:postgres@localhost:5432/test?sslmode=disable
+```
+
+This string matches:
+
+- User: `postgres`
+- Password: `postgres`
+- Host: `localhost` (Docker port mapping assumed)
+- Port: `5432`
+- Database: `test`
+- SSL Mode: disabled
+
+### How to confirm connectivity:
+
+```bash
+# Example using psql CLI or a database GUI tool
+psql "postgres://postgres:postgres@localhost:5432/test?sslmode=disable" -c '\l'
+```
+
+or
+
+Use any PostgreSQL client with the credentials above to connect and list databases.
+
+<Warning> If you customized any values in the Docker Compose or your environment uses different port mappings, adjust the DSN accordingly.</Warning>
+
+---
+
+## 4. Initialize Database Schema and Prepare Tables
+
+The benchmark suites automatically initialize tables prior to running tests, but you can also manually trigger initialization by running the benchmarks or connecting directly:
+
+- The initialization logic drops tables if they exist and creates a new `models` table with the required columns.
+- Different ORMs use their own schema names (e.g., `beego_model`, `xorm_model`), but the baseline is consistent across all.
+
+> You do not need to manually execute SQL scripts unless troubleshooting connectivity issues.
+
+---
+
+## 5. Environment Variables & Flags Setup
+
+When you run the benchmark application, set necessary flags to customize connection parameters and concurrency settings. For example:
+
+```bash
+go run main.go -source="postgres://postgres:postgres@localhost:5432/test?sslmode=disable" -max_idle=200 -max_conn=200 -multi=20 -orm=all
+```
+
+Flag explanation:
+
+- `-source`: PostgreSQL connection string
+- `-max_idle`, `-max_conn`: Max idle and open connections in the DB pool
+- `-multi`: Query multiplier to scale operations
+- `-orm`: Specific ORM suite or `all` for all supported ones
+
+<Check> If not specified, defaults are provided, suitable for most setups.
+
+---
+
+## 6. Run a Simple Smoke Test (Optional)
+
+Confirm the environment setup by running a single ORM benchmark, such as GORM:
+
+```bash
+go run main.go -orm=gorm -multi=1
+```
+
+You should see output reflecting benchmark progress and summary reports.
+
+---
+
+## Troubleshooting Setup Issues
+
+<AccordionGroup title="Common Setup Issues and Solutions">
+<Accordion title="Docker Container Not Starting or Exiting">
+- Confirm Docker daemon is running.
+- Run `docker-compose logs` to check for errors.
+- Check for port conflicts on 5432.
+</Accordion>
+<Accordion title="Database Connection Failures">
+- Check DSN correctness.
+- Ensure Docker port mappings allow host connectivity.
+- Verify PostgreSQL container logs for startup errors.
+</Accordion>
+<Accordion title="Permission or Access Denied Errors">
+- Confirm Docker user permissions.
+- Use `docker-compose exec postgres psql -U postgres` to manually inspect.
+</Accordion>
+<Accordion title="Benchmark Failures at Initialization">
+- Ensure table creation SQL runs correctly.
+- Check PostgreSQL version compatibility (Docker image uses stable recent version).
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Summary
+
+By following these steps, you will have cloned the ORM Benchmark source code repository, started a PostgreSQL service using Docker Compose, and prepared the environment to run controlled ORM performance tests.
+
+The environment ensures reproducibility, isolates tests from host variability, and provides you the foundation for running reliable ORM benchmarks.
+
+For complete setup, proceed to [Running Your First Benchmark](https://orm-benchmark.io/getting-started/installation-and-first-run/running-your-first-benchmark) to execute and analyze your initial test run.
+
+---
+
+## Additional Resources
+
+- [Official GitHub Repository](https://github.com/go-gorm/orm-benchmark)
+- [System Requirements](https://orm-benchmark.io/getting-started/setup-prerequisites/system-requirements)
+- [Installing Dependencies](https://orm-benchmark.io/getting-started/setup-prerequisites/installing-dependencies)
+- [Integration & Setup Overview](https://orm-benchmark.io/overview/architecture-and-core-concepts/integration-and-setup)
+
+---

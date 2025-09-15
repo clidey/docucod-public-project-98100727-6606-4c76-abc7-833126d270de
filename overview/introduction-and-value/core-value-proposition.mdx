@@ -1,0 +1,106 @@
+---
+title: "Core Value Proposition"
+description: "Discover how ORM Benchmark saves developers time and confusion when assessing Go ORM libraries. This section covers how benchmarks are run in a no-cache, controlled setting for valid cross-ORM results, ensuring transparency and reliability for technical decision-making."
+---
+
+# Core Value Proposition
+
+ORM Benchmark is designed to eliminate uncertainty and save valuable developer time when selecting a Go ORM library by providing reliable, transparent, and comparable performance data. Through rigorous benchmarking in a no-cache, tightly controlled environment, users can trust the results to reflect true ORM efficiency rather than environmental fluctuations or caching effects.
+
+---
+
+## Why ORM Benchmark Matters
+
+When choosing an Object-Relational Mapping (ORM) library, developers face a myriad of choices, each promising simplicity, performance, or features. However, claims often lack direct, side-by-side, empirical comparisons — leading to guesswork, trial and error, and costly performance misjudgments in projects. ORM Benchmark fills this gap by delivering clear, actionable performance insights across popular Go ORM libraries.
+
+By running each benchmark using consistent, repeatable scenarios without caching artifacts, ORM Benchmark ensures that each library’s performance is measured fairly. This empowers developers to make informed decisions based on practical, standardized metrics rather than vendor claims or anecdotal evidence.
+
+---
+
+## How ORM Benchmark Delivers Value
+
+- **Objective Performance Comparison:** All benchmarks run with no-cache setups to neutralize prior runs' caching benefits, ensuring results directly reflect raw ORM and database interaction speed.
+
+- **Controlled Testing Environment:** Initialization resets and database table recreation happen before benchmarks to guarantee fresh states for each scenario, eliminating side effects that could skew results.
+
+- **Comprehensive ORM Coverage:** Supports multiple well-known Go ORM implementations including raw SQL approaches, GORM (v1 and v2), Beego ORM, Bun, and XORM, enabling extensive cross-library benchmarking.
+
+- **Realistic Benchmarks:** Scenarios mirror common real-world use cases like single and bulk inserts, updates, and queries (both single-row and multi-row reads).
+
+- **Clear Failure Handling:** Benchmarks explicitly fail fast on any database or execution errors, preventing misleading or incomplete results.
+
+This methodology produces data that developers can confidently use to identify the best-suited ORM for their application based on performance.
+
+---
+
+## What You Gain With ORM Benchmark
+
+- **Time Saved:** Avoid weeks of trial benchmarking and debugging by starting with trusted, fine-tuned tests.
+
+- **Decision Confidence:** Base ORM library selections on objective, repeatable performance results.
+
+- **Transparent Results:** Open-source code enables you to audit benchmark logic, ensuring no hidden benchmarks or unfair advantages.
+
+- **Scalability Insights:** See how ORMs behave under multi-row operations and at scale with configurable query multipliers.
+
+- **Reliable Baselines:** Run your own with the same configuration to validate or extend benchmarking results.
+
+---
+
+## Real-World Scenario
+
+Imagine you’re building a Go backend with PostgreSQL for a high-traffic application. Performance is critical, but you are unsure if the ease of use of a full-featured ORM outweighs the raw speed of handwritten SQL. ORM Benchmark enables you to run a suite of insert, update, and read operations across several leading ORMs under equal conditions. The results show how much overhead each ORM adds, helping you balance developer productivity with runtime efficiency and select the best-fit library for your workload.
+
+---
+
+## What’s Next?
+
+Explore the [Major Features at a Glance](/overview/introduction-and-value/major-features) to understand the full capability set of ORM Benchmark. Then dive into [Running Your First Benchmark](/getting-started/installation-and-first-run/running-your-first-benchmark) for step-by-step guidance to start evaluating ORMs in your environment.
+
+---
+
+## Practical Tips
+
+- Always verify your environment matches benchmark prerequisites to ensure valid comparisons.
+- Use the configuration options to adjust query volume and tailor tests to your workload.
+- Review error outputs carefully to catch setup or connection issues early.
+- Combine benchmark results with profiling tools to understand ORM behavior under load.
+
+---
+
+## Common Pitfalls to Avoid
+
+- Do not assume results will apply universally without validating in your environment.
+- Avoid running benchmarks without resetting the database schema to prevent residual state effects.
+- Don't overlook the importance of disabling query caching or ORM-level transaction wrappers where applicable.
+
+---
+
+By prioritizing fairness, transparency, and user-focused benchmarks, ORM Benchmark offers a critical tool that transforms ORM selection from guesswork into a data-driven process.
+
+---
+
+<Accordion title="Learn More About Benchmark Execution">
+Benchmark runs are designed to reset the database schema and clear caches to eliminate side effects. Each test method encompasses:
+
+- Table drop and recreation for a clean state
+- Inserting new model instances generated at runtime
+- Bulk batch inserts for throughput measurement
+- Updates to existing records
+- Single and multiple record reads
+
+This systematic setup ensures reproducible and comparable results regardless of ORM.
+</Accordion>
+
+<Accordion title="Pro Tip: Interpreting Results">
+Consider the trade-offs between speed and feature complexity. An ORM that performs slightly slower but offers richer functionality or simpler maintenance might be a better long-term choice. Benchmark performance forms one part of a holistic evaluation.
+</Accordion>
+
+---
+
+###### Related Documentation
+
+- [What is ORM Benchmark?](/overview/introduction-and-value/what-is-orm-benchmark)
+- [Major Features at a Glance](/overview/introduction-and-value/major-features)
+- [Running Your First Benchmark](/getting-started/installation-and-first-run/running-your-first-benchmark)
+- [Configuring Benchmarks for Different ORMs](/guides/benchmark-workflows/configuring-benchmarks)

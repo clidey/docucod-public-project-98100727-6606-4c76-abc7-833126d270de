@@ -1,0 +1,108 @@
+{
+  "background": {
+    "decoration": "gradient"
+  },
+  "colors": {
+    "dark": "#1E3A8A",
+    "light": "#60A5FA",
+    "primary": "#60A5FA"
+  },
+  "favicon": "/favicon.svg",
+  "fonts": {
+    "family": "Montserrat",
+    "format": "woff2",
+    "source": "https://fonts.gstatic.com/s/googlesansflex/v5/t5sJIQcYNIWbFgDgAAzZ34auoVyXkJCOvp3SFWJbN5hF8Ju1x6sKCyp0l9sI40swNJwGpVd4AZzz0v6lJ4qFXNZhGjLvDSkV4USKMo6qQzwliVdHAy9jxTDHg_ugnAakpwGc-cxgUqDCIUI.woff2"
+  },
+  "icons": {
+    "library": "fontawesome"
+  },
+  "logo": {
+    "dark": "./logo/logo.svg",
+    "light": "./logo/logo.svg"
+  },
+  "name": "ORM Benchmark",
+  "navigation": {
+    "tabs": [
+      {
+        "groups": [
+          {
+            "group": "Introduction \u0026 Value",
+            "pages": [
+              "overview/introduction-and-value/what-is-orm-benchmark",
+              "overview/introduction-and-value/core-value-proposition",
+              "overview/introduction-and-value/major-features"
+            ]
+          },
+          {
+            "group": "Architecture \u0026 Core Concepts",
+            "pages": [
+              "overview/architecture-and-core-concepts/system-architecture",
+              "overview/architecture-and-core-concepts/core-concepts-terminology",
+              "overview/architecture-and-core-concepts/supported-orms",
+              "overview/architecture-and-core-concepts/integration-and-setup"
+            ]
+          }
+        ],
+        "tab": "Overview"
+      },
+      {
+        "groups": [
+          {
+            "group": "Setup \u0026 Prerequisites",
+            "pages": [
+              "getting-started/setup-prerequisites/system-requirements",
+              "getting-started/setup-prerequisites/installing-dependencies"
+            ]
+          },
+          {
+            "group": "Installation \u0026 First Run",
+            "pages": [
+              "getting-started/installation-and-first-run/cloning-and-setup",
+              "getting-started/installation-and-first-run/running-your-first-benchmark",
+              "getting-started/installation-and-first-run/configuration-options"
+            ]
+          },
+          {
+            "group": "Validation \u0026 Troubleshooting",
+            "pages": [
+              "getting-started/validation-and-troubleshooting/quick-validation",
+              "getting-started/validation-and-troubleshooting/troubleshooting-common-issues"
+            ]
+          }
+        ],
+        "tab": "Getting Started"
+      },
+      {
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "guides/getting-started/setup-environment",
+              "guides/getting-started/running-first-benchmark"
+            ]
+          },
+          {
+            "group": "Benchmarking Workflows \u0026 Best Practices",
+            "pages": [
+              "guides/benchmark-workflows/configuring-benchmarks",
+              "guides/benchmark-workflows/interpreting-results",
+              "guides/benchmark-workflows/profiling-optimization"
+            ]
+          },
+          {
+            "group": "Advanced Scenarios \u0026 Troubleshooting",
+            "pages": [
+              "guides/advanced-scenarios/integrating-custom-orms",
+              "guides/advanced-scenarios/troubleshooting-common-issues"
+            ]
+          }
+        ],
+        "tab": "Guides"
+      }
+    ]
+  },
+  "styling": {
+    "codeblocks": "dark",
+    "eyebrows": "breadcrumbs"
+  }
+}

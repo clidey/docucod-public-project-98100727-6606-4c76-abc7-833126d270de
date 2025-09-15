@@ -1,0 +1,183 @@
+---
+title: "Configuration & Customization Options"
+description: "Explains the command-line flags provided (e.g., number of concurrent workers, ORM selection), what they mean, and how to tailor them for your own benchmarks. Includes example use cases."
+---
+
+# Configuration & Customization Options
+
+This page explains the command-line flags available to tailor ORM Benchmark runs to your specific needs. By adjusting these options, you control which ORMs to test, how many concurrent operations to perform, the database connection details, and profiling settings for deeper performance insights. Follow the guidance below to optimize benchmarking based on your environment and goals.
+
+---
+
+## 1. Understanding the Key Command-Line Flags
+
+ORM Benchmark is primarily run via `go run main.go` along with a set of flags that customize the benchmarking behavior. These flags influence concurrency, ORM selection, connection settings, and profiling.
+
+| Flag        | Type     | Default                                   | Description                                                                                         |
+|-------------|----------|-------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `-multi`    | int      | 1                                         | Multiplier for the base query count, controlling the scale of concurrent queries issued in benchmarks. Increasing this scales benchmark intensity. |
+| `-orm`      | string[] | `all` (runs benchmarks on all supported ORMs) | Specify one or more ORM names to run. Use `all` for all ORMs or list names separated by commas, e.g., `-orm=gorm,bun`. |
+| `-source`   | string   | `postgres://postgres:postgres@localhost:5432/test?sslmode=disable` | PostgreSQL DSN connection string. Change this to point to your PostgreSQL instance.                 |
+| `-max_idle` | int      | 200                                       | Maximum number of idle connections maintained by the ORM to the database.                             |
+| `-max_conn` | int      | 200                                       | Maximum number of open connections allowed to the database.                                         |
+| `-cpu`      | bool     | false                                     | Enable CPU profiling, generating a `cpu.pprof` file during benchmark runs.                           |
+| `-mem`      | bool     | false                                     | Enable memory profiling, creating a `mem.pprof` heap profile file for analysis.                     |
+
+
+## 2. How to Use These Flags Effectively
+
+### Selecting ORMs to Benchmark
+
+Use the `-orm` flag to specify which ORM(s) to run benchmarks against. This is especially useful if you want to focus benchmarking efforts on one or a subset of ORMs. Supported ORMs include (but are not limited to) `gorm`, `bun`, `xorm`, `beego_orm`, `gorm_v1`.
+
+**Example:** Run benchmark only for GORM and Bun:
+
+```bash
+# Run benchmarks on GORM and Bun only
+$ go run main.go -multi=10 -orm=gorm,bun
+```
+
+If omitted or set to `all`, all available ORM suites will be benchmarked.
+
+### Controlling Concurrency with `-multi`
+
+The `-multi` flag scales the number of base query invocations per benchmark. The default `1` means the base number of queries is run once per benchmark. For more intensive load testing, increase this value to simulate higher concurrency and workload.
+
+**Example:** Run all benchmarks with scaled concurrency of 20 (20 times base workloads):
+
+```bash
+$ go run main.go -multi=20 -orm=all
+```
+
+### Adjusting Database Connection Pool Sizes
+
+The `-max_idle` and `-max_conn` flags configure the connection pool for each ORM's database connection. Adjusting these settings impacts resource usage and can affect benchmark throughput:
+
+- `max_idle` controls idle connections kept alive for reuse.
+- `max_conn` limits the total simultaneous open connections.
+
+Increase these values to handle higher concurrency or reduce them to conserve resources.
+
+**Example:** Configure connection pools for heavy concurrency:
+
+```bash
+$ go run main.go -multi=30 -max_idle=100 -max_conn=150 -orm=gorm
+```
+
+### Specifying Custom Database Connection Strings
+
+By default, ORM Benchmark connects to a PostgreSQL instance running locally with default credentials (`postgres:postgres`). If your database uses different host, port, username, password, or SSL mode, adjust the `-source` flag accordingly.
+
+**Example:** Connect to a remote PostgreSQL instance using SSL:
+
+```bash
+$ go run main.go -source="postgres://user:password@db.example.com:5432/benchmark?sslmode=require" -orm=all
+```
+
+### Enabling CPU and Memory Profiling
+
+For advanced diagnostics and profiling, enable CPU (`-cpu`) and memory (`-mem`) profiling. These generate `.pprof` files that can be analyzed with tools like `go tool pprof` to identify CPU hotspots or memory usage patterns.
+
+**Example:** Enable both CPU and memory profiling while running GORM benchmarks:
+
+```bash
+$ go run main.go -cpu=true -mem=true -orm=gorm
+```
+
+After running, analyze the profiling data:
+
+```bash
+$ go tool pprof cpu.pprof
+$ go tool pprof mem.pprof
+```
+
+
+## 3. Example Use Cases
+
+### Case 1: Run Full Benchmark with Moderate Concurrency
+Run all ORMs with concurrency multiplier 5 (for a balanced workload):
+
+```bash
+$ go run main.go -multi=5
+```
+
+### Case 2: Focus on a Single ORM with Custom DB
+Run benchmarks for only Bun ORM, connecting to a custom database:
+
+```bash
+$ go run main.go -multi=10 -orm=bun -source="postgres://customuser:pass@127.0.0.1:5432/customdb?sslmode=disable"
+```
+
+### Case 3: Profile CPU Usage During Benchmark
+Run all ORMs with CPU profiling enabled:
+
+```bash
+$ go run main.go -multi=10 -cpu
+```
+
+
+## 4. Best Practices & Tips
+
+- **Match `multi` with connection pool size:** When increasing `-multi`, ensure `-max_conn` and `-max_idle` are set to handle the expected concurrency to avoid connection exhaustion.
+- **Use `all` ORM option during initial tests:** This helps catch setup issues across all ORMs before targeting one.
+- **Profile only on demand:** Enable `-cpu` or `-mem` profiling selectively as profiling adds overhead and results in extra files.
+- **Secure your connection info:** Avoid hardcoding sensitive information in your connection string. Use environment variables if possible.
+- **Test connectivity prior:** Confirm your `-source` connection string works with standard Postgres clients to rule out connectivity issues.
+
+
+## 5. Troubleshooting Common Configuration Issues
+
+<AccordionGroup title="Common Configuration Pitfalls">
+<Accordion title="Incorrect ORM names in -orm flag">
+If you specify an ORM name not recognized, the tool will report an error like `wrong run name`. Double-check that the ORM names match exactly one of the supported values: `gorm`, `bun`, `beego_orm`, `xorm`, `gorm_v1`, or `all`.
+
+Example:
+```bash
+$ go run main.go -orm=gormxx
+# Error: wrong run name gormxx
+```
+Double-check spelling or run without `-orm` to list available ORMs.
+</Accordion>
+<Accordion title="Database Connection Failures">
+Check the correctness of your `-source` DSN string including username, password, host, port, and database name. Also verify the PostgreSQL server is running and accessible.
+
+Example error:
+```
+$error: pq: password authentication failed for user 'wronguser'
+```
+Confirm credentials and permissions.
+</Accordion>
+<Accordion title="Connection Pool Misconfiguration">
+If you set `-max_conn` or `-max_idle` too low for high concurrency `-multi` values, you may see errors related to exhausted connections or timeouts. Increase these values to match your concurrency needs.
+</Accordion>
+<Accordion title="Profiling Files Not Created">
+Ensure you have write permissions in the directory where you run the benchmark. CPU and memory profiling files (`cpu.pprof` and `mem.pprof`) are created in the current working directory.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 6. Summary of Flags
+
+```plaintext
+-max_idle int       Maximum idle DB connections (default 200)
+-max_conn int       Maximum open DB connections (default 200)
+-multi int          Concurrency multiplier for query count (default 1)
+-orm string         ORM(s) to run benchmarks on, e.g. "all", "gorm,bun"
+-source string      PostgreSQL DSN connection string
+-cpu bool           Enable CPU profiling
+-mem bool           Enable memory profiling
+```
+
+---
+
+## 7. Related Documentation
+
+- [Running Your First Benchmark](/getting-started/installation-and-first-run/running-your-first-benchmark): Learn how to use these configuration options in a full benchmark run.
+- [System Requirements](/getting-started/setup-prerequisites/system-requirements): Confirm your environment is prepared before running benchmarks.
+- [Troubleshooting Common Issues](/getting-started/validation-and-troubleshooting/troubleshooting-common-issues): Get help resolving common setup or runtime issues.
+- [Supported ORMs & Technologies](/overview/architecture-and-core-concepts/supported-orms): Understand which ORMs are included and benchmarked.
+
+---
+
+Feel confident to experiment with these options to tailor ORM Benchmark runs precisely to your environment and testing goals. Properly configuring concurrency and connection details unlocks accurate and meaningful ORM performance comparisons.
