@@ -1,0 +1,146 @@
+---
+title: "Troubleshooting Common Benchmarking Issues"
+description: "Explore solutions to frequent problems users may encounter, such as environment errors, flaky benchmarks, or unexpected results. This page provides targeted guidance and debugging strategies for resilient benchmarking workflows."
+---
+
+# Troubleshooting Common Benchmarking Issues
+
+This guide addresses frequent problems encountered during ORM Benchmark setup, execution, and result interpretation. By following the targeted solutions and debugging strategies here, you will maintain stable, reliable benchmarking workflows and resolve errors related to environment setup, flaky results, or unexpected behaviors.
+
+---
+
+## 1. Common Environment Errors
+
+### Symptoms
+- Benchmark runs fail to start or crash immediately.
+- Connection errors reported with PostgreSQL or Docker.
+- Errors like `could not connect to server`, or timeout issues.
+
+### Solutions
+- **Verify PostgreSQL Service:** Ensure PostgreSQL is running locally or remotely, and accepting connections with correct credentials.
+- **Check Docker Status:** If using Docker Compose for PostgreSQL, confirm the container is up (`docker-compose ps`) and logs have no errors (`docker-compose logs`).
+- **Validate Connection String:** Confirm the `-source` flag uses the correct PostgreSQL DSN, formatted like `postgres://user:password@host:port/dbname?sslmode=disable`.
+- **Firewall and Network:** Make sure local firewall or network policies are not blocking database ports.
+- **Resource Limits:** PostgreSQL connections may fail if max connections or resources are exhausted — check PostgreSQL logs and system resource usage.
+
+### Verification
+Run a simple `psql` command or `pg_isready` on the same host to confirm connectivity prior to benchmarking.
+
+---
+
+## 2. Flaky or Inconsistent Benchmark Results
+
+### Symptoms
+- Benchmark results differ significantly for repeated runs without configuration changes.
+- Performance metrics fluctuate unpredictably.
+
+### Causes & Recommendations
+- **Caching and State:** ORM Benchmark intentionally executes in no-cache mode and resets between runs, but external caches (OS disk cache, PostgreSQL buffers) can still influence results.
+  - Run benchmarks multiple times and use averages for comparison.
+- **Concurrency Settings:** Inconsistent concurrency (`-multi` flag) or connection pool limits (`-max_idle`, `-max_conn`) impact stability.
+  - Use consistent and sufficient pool settings aligned to your CPU and PostgreSQL capacity.
+- **Background System Load:** Ensure the machine is not under heavy load from other processes.
+- **Benchmark Initialization:** Each ORM resets database state before runs; ensure no interfering manual changes.
+
+### Verification
+Use the CPU/memory profiling flags (`-cpu`, `-mem`) to detect bottlenecks, and monitor system metrics during benchmark execution.
+
+---
+
+## 3. Unexpected Errors During Benchmark Execution
+
+### Typical Messages
+- ORM-specific errors during Insert, Update, or Read benchmarks.
+- Panics or `b.FailNow()` triggered due to failed database operations.
+
+### Diagnosis & Solutions
+- **Model Initialization Failures:** Benchmarks rely on clean schema initialization. Check for errors in the database setup steps.
+- **Batch Insert Issues:** Some ORMs or versions may not support bulk insert methods fully (e.g., GORM v1 MultiInsert triggers panic).
+  - Avoid or skip unsupported benchmark scenarios if you encounter repeated failures.
+- **SQL Syntax or Schema Mismatches:** Confirm that the `initDB` functions correctly drop and recreate required tables.
+- **Connection Pooling Limits:** ORM connection pool misconfigurations can cause timeout or overload errors.
+  - Adjust `-max_idle` and `-max_conn` flags depending on your PostgreSQL server’s capacity.
+- **Version Compatibility:** ORM versions, Go runtime, or PostgreSQL versions outside tested configurations may cause unexpected failures.
+  - Consult [System Requirements](/getting-started/setup-prerequisites/system-requirements) and update environments accordingly.
+
+---
+
+## 4. Debugging Tips
+
+- **Enable Verbose Logging:** Temporarily enable ORM or database query logging to capture detailed error messages.
+- **Manual Query Testing:** Use direct SQL queries with `psql` or database consoles to verify schema and CRUD operations independently.
+- **Isolate Problematic ORM or Scenario:** Run benchmarks one ORM at a time using the `-orm` flag.
+- **Use Profiling:** Run with CPU or memory profiling enabled (`-cpu`, `-mem`) and analyze reports with Go's `pprof` tool.
+- **Run Quick Validation:** Follow the [Quick Validation Checklist](/getting-started/validation-and-troubleshooting/quick-validation) to verify environment readiness and basic benchmark execution.
+
+---
+
+## 5. Best Practices for Reliable Benchmarking
+
+- Maintain a clean, consistent database state by letting the benchmark's built-in `initDB` functions reset tables.
+- Isolate benchmarking runs from other resource-intensive applications.
+- Always run multiple iterations and collect averages to mitigate transient environmental influences.
+- Use specific ORM selections with `-orm` flag to focus on individual library issues.
+- Adjust concurrency and connection pool sizes in harmony with your machine’s CPU cores and PostgreSQL tuning.
+
+---
+
+## 6. Example: Running a Single ORM Benchmark with Debug
+
+```bash
+# Run only the GORM v2 benchmark with default concurrency
+go run main.go -orm=gorm
+
+# Run with verbose profiling enabled
+go run main.go -orm=gorm -cpu=true -mem=true
+
+# Run with increased max connections for heavy concurrency
+go run main.go -orm=gorm -max_idle=100 -max_conn=200 -multi=10
+```
+
+Use the produced `cpu.pprof` and `mem.pprof` files with Go pprof:
+
+```bash
+go tool pprof cpu.pprof
+go tool pprof mem.pprof
+```
+
+---
+
+## 7. Troubleshooting Common ORM Issues
+
+<AccordionGroup title="Known ORM-Specific Issues and Workarounds">
+<Accordion title="GORM v1 MultiInsert Failure">
+The GORM v1 MultiInsert benchmark intentionally panics with 'doesn't work' since bulk inserts in this setup are unsupported or problematic. Avoid running this benchmark to prevent errors.
+</Accordion>
+<Accordion title="XORM MultiRead Benchmark Failure">
+The XORM MultiRead benchmark triggers a panic due to incomplete or unsupported multi-read implementation. It is recommended to skip or exclude this benchmark with the `-orm` flag.
+</Accordion>
+<Accordion title="Beego ORM Failures">
+Ensure the `beego_model` table schema is correctly created. Connection pool flags should be configured to match PostgreSQL capacity to prevent unexpected timeout errors.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 8. When to Seek Further Help
+
+- Persistent connection or setup errors after verifying system readiness.
+- Unexplained benchmark crashes or panics despite model and schema checks.
+- Profiling data indicates performance bottlenecks you cannot resolve.
+
+Try consulting the [Troubleshooting Common Issues](/getting-started/validation-and-troubleshooting/troubleshooting-common-issues) guide, raising issues on the [official GitHub repository](https://github.com/go-gorm/orm-benchmark), or engaging community forums.
+
+---
+
+## 9. Additional Resources
+
+- [System Requirements](/getting-started/setup-prerequisites/system-requirements): Ensure platform compliance.
+- [Running Your First Benchmark](/getting-started/installation-and-first-run/running-your-first-benchmark): Complete beginner workflow.
+- [Configuration & Customization Options](/getting-started/installation-and-first-run/configuration-options): Fine-tune benchmarking parameters.
+- [Quick Validation Checklist](/getting-started/validation-and-troubleshooting/quick-validation): Basic health checks.
+- [Profiling and Performance Optimization Tips](/guides/benchmark-workflows/profiling-optimization): Deep-dive profiling.
+
+---
+
+Stay proactive in environment management and configuration tuning to harness the full power of ORM Benchmark with consistent, meaningful results.
