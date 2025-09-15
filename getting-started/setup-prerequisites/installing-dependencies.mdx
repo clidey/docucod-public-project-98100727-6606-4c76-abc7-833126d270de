@@ -1,0 +1,280 @@
+---
+title: "Installing Dependencies"
+description: "Guides users through installing Go, Docker, and other required tools on various platforms (Windows, macOS, Linux). Includes essential commands and troubleshooting for common installation issues."
+---
+
+# Installing Dependencies
+
+This guide walks you through installing all necessary dependencies to run ORM Benchmark successfully. It ensures you have Go, Docker, and other essential tools installed and configured on your system, preparing you for the next step of running benchmarks seamlessly.
+
+---
+
+## 1. Prerequisites & System Compatibility
+
+Before installing dependencies, confirm your system meets the following minimal requirements:
+
+- **Operating Systems Supported:** Windows 10 or later, macOS 10.15 (Catalina) or later, most major Linux distros
+- **Go Language:** Version 1.18 or higher
+- **Docker:** Version 20.10 or higher
+- **Memory:** Minimum 4GB RAM recommended
+- **Disk Space:** At least 2GB free for Docker and source files
+
+> Ensure you have administrator privileges to install software.
+
+---
+
+## 2. Installing Go
+
+Go is a core prerequisite, needed to compile and run the benchmark application.
+
+### Windows
+
+1. Visit the official Go downloads page at [https://golang.org/dl/](https://golang.org/dl/).
+2. Download the Windows MSI installer for your system architecture (32 or 64-bit).
+3. Run the installer and follow the prompts to install Go.
+4. Open a new Command Prompt and verify the installation:
+
+```shell
+go version
+```
+
+Expected output example:
+
+```
+go version go1.20.3 windows/amd64
+```
+
+### macOS
+
+#### Option A: Using Homebrew (recommended)
+
+1. Open Terminal.
+2. Run:
+
+```shell
+brew install go
+```
+
+3. Confirm installation:
+
+```shell
+go version
+```
+
+#### Option B: Manual download
+
+1. Download the macOS package from [https://golang.org/dl/](https://golang.org/dl/).
+2. Run the installer and follow instructions.
+3. Open Terminal and verify with `go version`.
+
+### Linux
+
+1. Download the Linux tarball appropriate for your architecture from [https://golang.org/dl/](https://golang.org/dl/).
+2. Extract to `/usr/local`:
+
+```shell
+tar -C /usr/local -xzf go1.xx.linux-amd64.tar.gz
+```
+
+3. Add Go binary to your PATH by adding the following line to your `.bashrc` or `.zshrc`:
+
+```shell
+export PATH=$PATH:/usr/local/go/bin
+```
+
+4. Reload shell configuration:
+
+```shell
+source ~/.bashrc
+```
+
+5. Confirm Go installation:
+
+```shell
+go version
+```
+
+---
+
+## 3. Installing Docker
+
+Docker enables running the PostgreSQL database required by ORM Benchmark with ease.
+
+### Windows
+
+1. Download Docker Desktop for Windows from [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/).
+2. Install following the wizard.
+3. Ensure virtualization is enabled in BIOS.
+4. After installation, launch Docker Desktop and confirm it’s running.
+5. Verify Docker installation by running in Command Prompt:
+
+```shell
+docker version
+```
+
+### macOS
+
+1. Download Docker Desktop for Mac from [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/).
+2. Install the package.
+3. Launch Docker Desktop and wait for it to initialize.
+4. Open Terminal and verify installation:
+
+```shell
+docker --version
+```
+
+### Linux
+
+Installation depends on the distribution. For Ubuntu/Debian:
+
+1. Update apt package index:
+
+```shell
+sudo apt-get update
+```
+
+2. Install packages to allow apt to use a repository over HTTPS:
+
+```shell
+sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release
+```
+
+3. Add Docker’s official GPG key:
+
+```shell
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
+
+4. Set up the stable repository:
+
+```shell
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+5. Install Docker Engine:
+
+```shell
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+```
+
+6. Verify installation:
+
+```shell
+docker --version
+```
+
+> **Tip:** Consider adding your user to the docker group to run Docker without sudo.
+
+---
+
+## 4. Additional Tools & Dependencies
+
+- **Git:** Required to clone the repository if you haven’t already.
+  - Windows: Download from [https://gitforwindows.org/](https://gitforwindows.org/).
+  - macOS: Install with Homebrew `brew install git` or from the official site.
+  - Linux: Install via package manager `sudo apt-get install git`.
+
+- **PostgreSQL Client (optional):** For manually verifying database connections.
+
+- **Environment Setup:** Ensure your system’s `GOPATH` and `PATH` variables are correctly set:
+
+```shell
+# Check Go environment
+go env GOPATH
+# Example PATH update (Linux/macOS)
+export PATH=$PATH:$GOPATH/bin
+```
+
+---
+
+## 5. Verifying Dependency Installation
+
+Run the following commands to verify all essential tools:
+
+```shell
+go version
+docker --version
+git --version
+```
+
+If any command fails or shows an error, recheck the corresponding installation steps.
+
+---
+
+## 6. Troubleshooting & Tips
+
+<AccordionGroup title="Common Installation Issues and Solutions">
+<Accordion title="Go Installation Not Found">
+- Ensure Go binaries are added to your system PATH.
+- Restart your terminal or system after installation.
+- Run `which go` or `where go` (Windows) to verify path.
+</Accordion>
+
+<Accordion title="Docker Daemon Not Running or Permission Errors">
+- On Windows and Mac, verify Docker Desktop is running.
+- On Linux, check Docker service:
+
+```shell
+sudo systemctl status docker
+```
+
+- Add your user to the Docker group:
+
+```shell
+sudo usermod -aG docker $USER
+```
+
+- Restart your session afterward.
+</Accordion>
+
+<Accordion title="Network or Proxy Issues Installing Dependencies">
+- Confirm your network allows access to Go and Docker official servers.
+- Configure proxy settings in Go environment or Docker Desktop as needed.
+</Accordion>
+
+<Accordion title="Insufficient Disk Space">
+- Clear unused Docker images and containers:
+
+```shell
+docker system prune -a
+```
+
+- Remove unused Go modules:
+
+```shell
+go clean -modcache
+```
+
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 7. Next Steps
+
+With all dependencies installed, you are ready to clone the repository and set up ORM Benchmark. Proceed to:
+
+- [Cloning the Repository & Setting Up](../installation-and-first-run/cloning-and-setup)
+- [Running Your First Benchmark](../installation-and-first-run/running-your-first-benchmark)
+
+These guides will direct you through getting the source code locally and executing your first benchmark runs.
+
+---
+
+For any issues or advanced configurations, see [Troubleshooting Common Issues](../validation-and-troubleshooting/troubleshooting-common-issues).
+
+---
+
+### References
+
+- Official Go Downloads: https://golang.org/dl/
+- Docker Desktop: https://www.docker.com/products/docker-desktop/
+- ORM Benchmark GitHub Repository: https://github.com/go-gorm/orm-benchmark
+
+---
+
+**Note:** This documentation fits into the full Getting Started setup flow outlined in the navigation, complementing System Requirements, Cloning & Setup, and Running benchmarks guides.
+
+
+---
